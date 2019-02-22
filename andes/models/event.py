@@ -3,7 +3,7 @@ Timed event base class
 """
 
 from .base import ModelBase
-from cvxopt import matrix
+from ..utils.altmath import matrix
 
 
 class EventBase(ModelBase):

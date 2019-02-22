@@ -1,5 +1,5 @@
-from cvxopt import matrix, spmatrix, sparse, spdiag  # NOQA
-from cvxopt import mul, div  # NOQA
+from ..utils.altmath import matrix, spmatrix, sparse, spdiag  # NOQA
+from ..utils.altmath import mul, div  # NOQA
 
 from .base import ModelBase
 
@@ -234,10 +234,8 @@ class Line(ModelBase):
         os = [0] * self.n
 
         # find islanded buses
-        diag = list(
-            matrix(
-                spmatrix(self.u, to, os, (n, 1), 'd') +
-                spmatrix(self.u, fr, os, (n, 1), 'd')))
+        diag = matrix(spmatrix(self.u, to, os, (n, 1), 'd') + spmatrix(self.u, fr, os, (n, 1), 'd'))
+        diag = list(diag.flat)
         nib = bus.n_islanded_buses = diag.count(0)
         bus.islanded_buses = []
         for idx in range(n):
@@ -245,11 +243,9 @@ class Line(ModelBase):
                 bus.islanded_buses.append(idx)
 
         # find islanded areas
-        temp = spmatrix(
-            list(self.u) * 4, fr + to + fr + to, to + fr + fr + to, (n, n),
-            'd')
+        temp = spmatrix(list(self.u.flat) * 4, fr + to + fr + to, to + fr + fr + to, (n, n), 'd')
         cons = temp[0, :]
-        nelm = len(cons.J)
+        nelm = len(cons.tocoo().col)
         conn = spmatrix([], [], [], (1, n), 'd')
         bus.island_sets = []
         idx = islands = 0
@@ -257,23 +253,23 @@ class Line(ModelBase):
 
         while 1:
             while 1:
-                cons = cons * temp
-                cons = sparse(cons)  # remove zero values
-                new_nelm = len(cons.J)
+                cons = cons*temp
+                new_nelm = len(cons.tocoo().col)
                 if new_nelm == nelm:
                     break
                 nelm = new_nelm
-            if len(cons.J) == n:  # all buses are interconnected
+            cons = sparse(cons)  # remove zero values
+            if len(cons.tocoo().col) == n:  # all buses are interconnected
                 return
-            bus.island_sets.append(list(cons.J))
+            bus.island_sets.append(list(cons.tocoo().col))
             conn += cons
             islands += 1
-            nconn = len(conn.J)
+            nconn = len(conn.tocoo().col)
             if nconn >= (n - nib):
                 bus.island_sets = [i for i in bus.island_sets if i != []]
                 break
 
-            for element in conn.J[idx:]:
+            for element in conn.tocoo().col[idx:]:
                 if not diag[idx]:
                     enum += 1  # skip islanded buses
                 if element <= enum:
@@ -308,7 +304,7 @@ class Line(ModelBase):
 
     def gycall(self, dae):
         gy = self.build_gy(dae)
-        dae.add_jac(Gy, gy.V, gy.I, gy.J)
+        dae.add_jac(Gy, gy.tocoo().data, gy.tocoo().row, gy.tocoo().col)
 
     def build_gy(self, dae):
         """Build line Jacobian matrix"""

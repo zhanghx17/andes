@@ -1,4 +1,4 @@
-from cvxopt import matrix, mul, spmatrix
+from ..utils.altmath import matrix, mul, spmatrix
 from scipy.sparse import coo_matrix
 import numpy as np
 

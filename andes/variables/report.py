@@ -1,7 +1,7 @@
 import importlib
 from time import strftime
 
-from cvxopt import mul
+from ..utils.altmath import mul
 
 from ..formats import all_formats
 from ..utils import elapsed

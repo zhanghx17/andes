@@ -1,72 +1,92 @@
 import numpy as np
+import scipy as sp
+import cvxopt
 
-from cvxopt import matrix
-from cvxopt import mul, exp
+
+# def matrix(*args, **kwargs):
+#     return cvxopt.matrix(np.array(*args, **kwargs))
+
+
+def mul(*args, **kwargs):
+    return np.multiply(*args, **kwargs)
+
+
+def exp(*args, **kwargs):
+    return np.exp(*args, **kwargs)
+
+
+def log(*args, **kwargs):
+    return np.log(*args, **kwargs)
 
 
 def altb(a, b):
     """Return a matrix of logic comparison of A<B"""
-    return matrix(np.less(a, b).astype('float'))
+    return np.less(a, b).astype('float')
 
 
 def mmax(a, b):
     """Return a matrix of maximum values in a and b element-wise"""
-    return matrix(np.maximum(a, b))
+    return np.maximum(a, b)
 
 
 def mmin(a, b):
     """Return a matrix of minimum values in a and b element-wise"""
-    return matrix(np.minimum(a, b))
+    return np.minimum(a, b)
 
 
 def agtb(a, b):
     """Return a matrix of logic comparision of A>B"""
-    return matrix(np.greater(a, b).astype('float'))
+    return np.greater(a, b).astype('float')
 
 
 def aleb(a, b):
     """Return a matrix of logic comparison of A<=B"""
-    return matrix(np.less_equal(a, b).astype('float'))
+    return np.less_equal(a, b).astype('float')
 
 
 def ageb(a, b):
     """Return a matrix of logic comparision of A>=B"""
-    return matrix(np.greater_equal(a, b).astype('float'))
+    return np.greater_equal(a, b).astype('float')
 
 
 def aeqb(a, b):
     """Return a matrix of logic comparison of A == B"""
-    return matrix(np.equal(a, b).astype('float'))
+    return np.equal(a, b).astype('float')
 
 
 def aneb(a, b):
     """Return a matrix of logic comparison of A != B"""
-    return matrix(np.not_equal(a, b).astype('float'))
+    return np.not_equal(a, b).astype('float')
 
 
 def aorb(a, b):
     """Return a matrix of logic comparison of A or B"""
-    return matrix(np.logical_or(a, b).astype('float'), a.size)
+    return np.logical_or(a, b).astype('float'), a.size
 
 
 def aandb(a, b):
     """Return a matrix of logic comparison of A or B"""
-    return matrix(np.logical_and(a, b).astype('float'), a.size)
+    return np.logical_and(a, b).astype('float'), a.size
 
 
 def nota(a):
     """Return a matrix of logic negative of A"""
-    return matrix(np.logical_not(a).astype('float'), a.size)
+    return np.logical_not(a).astype('float'), a.size
 
 
 def polar(m, a):
     """Return complex number from polar form m*exp(1j*a)"""
-    return mul(m, exp(1j * a))
+    return np.multiply(m, np.exp(1j * a))
 
 
 def conj(a):
     """return the conjugate of a"""
-    return a.H.T
+    if isinstance(a, (cvxopt.matrix, cvxopt.spmatrix)):
+        return a.H.T
+    elif isinstance(a, np.ndarray):
+        return a.conjugate()
+    elif sp.sparse.issparse(a):
+        return a.conjugate()
 
 
 def neg(u):
@@ -76,43 +96,46 @@ def neg(u):
 
 def mfloor(a):
     """Return the element-wise floor value of a"""
-    return matrix(np.floor(a), a.size)
+    return np.floor(a)
 
 
 def mround(a):
     """Return the element-wise round value of a"""
-    return matrix(np.round(a), a.size)
+    return np.round(a)
 
 
 def not0(a):
     """Return u if u!= 0, return 1 if u == 0"""
-    return matrix(list(map(lambda x: 1 if x == 0 else x, a)), a.size)
+    return np.array(list(map(lambda x: 1 if x == 0 else x, a)))
 
 
 def zeros(m, n):
     """Return a m-by-n zero-value matrix"""
-    return matrix(0.0, (m, n), 'd')
+    if n == 1:
+        return np.zeros((m, ))
+    else:
+        return np.zeros((m, n))
 
 
 def ones(m, n):
     """Return a m-by-n one-value matrix"""
-    return matrix(1.0, (m, n), 'd')
+    return np.ones((m, n))
 
 
 def sign(a):
     """Return the sign of a in (1, -1, 0)"""
-    return matrix(np.sign(np.array(a)))
+    return np.sign(np.array(a))
 
 
 def sort(m, reverse=False):
     """Return sorted m (default: ascending order)"""
-    ty = type(m)
-    if ty == matrix:
+    if isinstance(m, cvxopt.matrix):
         m = list(m)
-    m = sorted(m, reverse=reverse)
-    if ty == matrix:
-        m = matrix(m)
-    return m
+        m = sorted(m, reverse=reverse)
+        return cvxopt.matrix(m)
+    elif isinstance(m, list):
+        m = sorted(m, reverse=reverse)
+        return m
 
 
 def sort_idx(m, reverse=False):
@@ -164,7 +187,8 @@ def sdiv(a, b):
     if len(a) != len(b):
         raise ValueError('Argument a and b does not have the same length')
     idx = 0
-    ret = matrix(0, (len(a), 1), 'd')
+    ret = zeros(len(a), 1)
+    ret = cvxopt.matrix(ret)
     for m, n in zip(a, b):
         try:
             ret[idx] = m / n

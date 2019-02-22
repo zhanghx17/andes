@@ -1,6 +1,6 @@
 import numpy as np
 
-from cvxopt import matrix
+from ..utils.altmath import matrix
 import logging
 
 logger = logging.getLogger(__name__)

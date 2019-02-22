@@ -2,7 +2,7 @@
 from numpy.random import weibull, uniform  # NOQA
 from numpy import arange, log
 
-from cvxopt import matrix, mul, spmatrix, div  # NOQA
+from ..utils.altmath import matrix, mul, spmatrix, div  # NOQA
 from .base import ModelBase
 
 from ..consts import Fx0, Fy0, Gx0, Gy0  # NOQA

@@ -1,4 +1,4 @@
-from cvxopt import matrix, spmatrix, sparse, spdiag
+from ..utils.altmath import matrix, spmatrix, sparse, spdiag
 from ..utils.math import zeros, ones
 from ..utils.math import ageb, aleb, aandb, agtb  # NOQA
 from ..utils.math import index, altb  # NOQA

@@ -1,5 +1,5 @@
 import logging
-from cvxopt import matrix, sparse, div
+from ..utils.altmath import matrix, sparse, div
 from .base import RoutineBase
 from andes.config.pflow import Pflow
 from andes.utils import elapsed

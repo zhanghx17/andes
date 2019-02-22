@@ -10,7 +10,7 @@ from andes.utils.solver import Solver
 
 from .base import RoutineBase
 
-from cvxopt import matrix, sparse, spdiag
+from ..utils.altmath import matrix, sparse, spdiag
 from time import monotonic as time, sleep
 
 logger = logging.getLogger(__name__)

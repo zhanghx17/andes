@@ -1,4 +1,7 @@
-from cvxopt import matrix, mul, spmatrix, div, sin, cos
+
+from ..utils.altmath import mul, div, sin, cos
+from ..utils.altmath import matrix, spmatrix
+
 from .dcbase import DCBase
 from ..utils.math import zeros, conj, polar
 
@@ -160,7 +163,7 @@ class VSC(DCBase):
         dae.y[self.Ish] = abs(IshC)
 
         # Converter dc power output
-        dae.y[self.pdc] = mul(Vsh, IshC).real() + \
+        dae.y[self.pdc] = mul(Vsh, IshC).real + \
             (self.k0 + mul(self.k1, dae.y[self.Ish]) + mul(
                 self.k2, mul(dae.y[self.Ish], dae.y[self.Ish])))
 

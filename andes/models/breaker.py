@@ -1,5 +1,5 @@
-from cvxopt import matrix, spmatrix  # NOQA
-from cvxopt import mul, div, exp  # NOQA
+from ..utils.altmath import matrix, spmatrix  # NOQA
+from ..utils.altmath import mul, div, exp  # NOQA
 from ..consts import *  # NOQA
 from ..utils.math import neg
 from .base import ModelBase

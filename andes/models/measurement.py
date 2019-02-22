@@ -1,5 +1,5 @@
-from cvxopt import matrix, sparse, spmatrix  # NOQA
-from cvxopt import mul, div, log, sin, cos  # NOQA
+from ..utils.altmath import matrix, sparse, spmatrix  # NOQA
+from ..utils.altmath import mul, div, log, sin, cos  # NOQA
 from .base import ModelBase
 
 from ..consts import Fx0, Fy0, Gx0, Gy0  # NOQA

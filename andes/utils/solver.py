@@ -8,7 +8,8 @@ try:
 except ImportError:
     CP = False
 
-from cvxopt import umfpack, matrix
+from cvxopt import umfpack
+from ..utils.altmath import matrix
 
 import numpy as np
 

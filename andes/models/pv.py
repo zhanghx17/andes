@@ -1,4 +1,4 @@
-from cvxopt import matrix, mul
+from ..utils.altmath import matrix, mul
 
 from .base import ModelBase
 

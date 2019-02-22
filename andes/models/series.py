@@ -1,4 +1,4 @@
-from cvxopt import matrix, spdiag, mul, div, spmatrix, sparse  # NOQA
+from ..utils.altmath import matrix, spdiag, mul, div, spmatrix, sparse  # NOQA
 
 from .base import ModelBase
 

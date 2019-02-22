@@ -1,5 +1,5 @@
 from andes.utils.tab import simpletab
-from cvxopt import matrix
+from ..utils.altmath import matrix
 
 
 def format_newline():

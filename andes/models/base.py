@@ -23,8 +23,9 @@ import importlib
 import numpy as np
 import logging
 
-from cvxopt import matrix, spmatrix  # NOQA
-from cvxopt import mul, div
+import cvxopt
+from ..utils.altmath import matrix, spmatrix  # NOQA
+from ..utils.altmath import mul, div
 
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL  # NOQA
 
@@ -441,7 +442,7 @@ class ModelBase(object):
 
         field_data = self.__dict__[field]
 
-        if isinstance(field_data, matrix):
+        if isinstance(field_data, (cvxopt.matrix, np.ndarray)):
             ret = field_data[uid]
         elif isinstance(field_data, list):
             if isinstance(idx, (float, int, str)):
@@ -1004,12 +1005,8 @@ class ModelBase(object):
                 self.__dict__[var] = div(self.__dict__[var], Zb)
             for var in self._y:
                 self._store[var] = self.__dict__[var]
-                if self.__dict__[var].typecode == 'd':
-                    self.__dict__[var] = div(self.__dict__[var], Zn)
-                    self.__dict__[var] = mul(self.__dict__[var], Zb)
-                elif self.__dict__[var].typecode == 'z':
-                    self.__dict__[var] = div(self.__dict__[var], Zn + 0j)
-                    self.__dict__[var] = mul(self.__dict__[var], Zb + 0j)
+                self.__dict__[var] = div(self.__dict__[var], Zn)
+                self.__dict__[var] = mul(self.__dict__[var], Zb)
 
         if len(self._dcvoltages) or len(self._dccurrents) or len(
                 self._r) or len(self._g):

@@ -1,5 +1,5 @@
 from .base import ModelBase
-from cvxopt import spmatrix, spdiag, matrix
+from ..utils.altmath import spmatrix, spdiag, matrix
 from ..utils.math import zeros
 import logging
 

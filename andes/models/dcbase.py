@@ -1,4 +1,5 @@
-from cvxopt import matrix, spmatrix, spdiag, mul, div  # NOQA
+from ..utils.altmath import matrix, spmatrix, spdiag  # NOQA
+from ..utils.altmath import mul, div  # NOQA
 from .base import ModelBase
 from ..consts import Fx0, Fy0, Gx0, Gy0  # NOQA
 from ..consts import Fx, Fy, Gx, Gy  # NOQA

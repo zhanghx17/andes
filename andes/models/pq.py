@@ -1,5 +1,5 @@
-from cvxopt import matrix, spdiag, spmatrix  # NOQA
-from cvxopt import mul, div, log, exp  # NOQA
+from ..utils.altmath import matrix, spdiag, spmatrix  # NOQA
+from ..utils.altmath import mul, div, log  # NOQA
 
 from scipy.sparse import coo_matrix
 import numpy as np

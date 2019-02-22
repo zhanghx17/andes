@@ -1,5 +1,5 @@
-from cvxopt import matrix, spmatrix, sparse
-from cvxopt import mul, div, sin, cos, exp
+from ..utils.altmath import matrix, spmatrix, sparse
+from ..utils.altmath import mul, div, sin, cos, exp
 
 from ..consts import Fx0, Fy0, Gx0, Gy0  # NOQA
 from ..consts import Fx, Fy, Gx, Gy  # NOQA

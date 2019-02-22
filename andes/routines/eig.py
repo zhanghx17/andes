@@ -7,7 +7,7 @@ from math import ceil
 
 from scipy.sparse import csr_matrix  # NOQA
 
-from cvxopt import matrix, spmatrix, mul, div
+from ..utils.altmath import matrix, spmatrix, mul, div
 from cvxopt.lapack import gesv
 
 from .base import RoutineBase

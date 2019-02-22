@@ -1,1 +1,1 @@
-from cvxopt import matrix, mul, spmatrix, div  # NOQA
+from ..utils.altmath import matrix, mul, spmatrix, div  # NOQA

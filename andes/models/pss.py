@@ -1,5 +1,5 @@
-from cvxopt import matrix, spmatrix
-from cvxopt import mul, div
+from ..utils.altmath import matrix, spmatrix
+from ..utils.altmath import mul, div
 
 from .base import ModelBase
 from .measurement import BusFreq  # NOQA

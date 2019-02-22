@@ -1,6 +1,6 @@
 """Control blocks"""
-from cvxopt import matrix, sparse, spmatrix  ## NOQA
-from cvxopt import mul, div, log, sin, cos  ## NOQA
+from ..utils.altmath import matrix, sparse, spmatrix  ## NOQA
+from ..utils.altmath import mul, div, log, sin, cos  ## NOQA
 from .base import ModelBase  ## NOQA
 # from ..consts import *
 # from ..utils.math import *
