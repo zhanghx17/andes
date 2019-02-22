@@ -51,8 +51,8 @@ class Fault(ModelBase):
         super().setup()
         self.xf += 1e-8
         Y = div(1, self.rf + 1j * self.xf)
-        self.gf = Y.real()
-        self.bf = Y.imag()
+        self.gf = Y.real
+        self.bf = Y.imag
         self.u = zeros(self.n, 1)
 
     def get_times(self):

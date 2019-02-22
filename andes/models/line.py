@@ -1,4 +1,4 @@
-from ..utils.altmath import matrix, spmatrix, sparse, spdiag  # NOQA
+from ..utils.altmath import matrix, spmatrix, sparse, spdiag, bmat, concatenate  # NOQA
 from ..utils.altmath import mul, div  # NOQA
 
 from .base import ModelBase
@@ -11,6 +11,8 @@ from ..consts import deg2rad
 
 import logging
 import importlib
+import numpy as np
+
 logger = logging.getLogger(__name__)
 
 pd = None
@@ -185,7 +187,7 @@ class Line(ModelBase):
             div(y12, m), self.a2, self.a1, (self.nb, self.nb), 'z')
         self.Bp += spmatrix(y12 + y2, self.a2, self.a2, (self.nb, self.nb),
                             'z')
-        self.Bp = self.Bp.imag()
+        self.Bp = self.Bp.imag
 
         # Build B double prime matrix
         y1 = mul(
@@ -210,7 +212,7 @@ class Line(ModelBase):
             div(y12, m), self.a2, self.a1, (self.nb, self.nb), 'z')
         self.Bpp += spmatrix(y12 + y2, self.a2, self.a2, (self.nb, self.nb),
                              'z')
-        self.Bpp = self.Bpp.imag()
+        self.Bpp = self.Bpp.imag
 
         for item in range(self.nb):
             if abs(self.Bp[item, item]) == 0:
@@ -261,7 +263,7 @@ class Line(ModelBase):
             cons = sparse(cons)  # remove zero values
             if len(cons.tocoo().col) == n:  # all buses are interconnected
                 return
-            bus.island_sets.append(list(cons.tocoo().col))
+            bus.island_sets.append(np.sort(cons.tocoo().col))
             conn += cons
             islands += 1
             nconn = len(conn.tocoo().col)
@@ -269,7 +271,7 @@ class Line(ModelBase):
                 bus.island_sets = [i for i in bus.island_sets if i != []]
                 break
 
-            for element in conn.tocoo().col[idx:]:
+            for element in np.sort(conn.tocoo().col)[idx:]:
                 if not diag[idx]:
                     enum += 1  # skip islanded buses
                 if element <= enum:
@@ -299,8 +301,8 @@ class Line(ModelBase):
         vc = polar(dae.y[self.v], dae.y[self.a])
         Ic = self.Y * vc
         S = mul(vc, conj(Ic))
-        dae.g[self.a] += S.real()
-        dae.g[self.v] += S.imag()
+        dae.g[self.a] += S.real
+        dae.g[self.v] += S.imag
 
     def gycall(self, dae):
         gy = self.build_gy(dae)
@@ -329,8 +331,10 @@ class Line(ModelBase):
         dR -= self.Y * diagVc
         dR = diagVc.H.T * dR
 
-        self.gy_store = sparse([[dR.imag(), dR.real()], [dS.real(),
-                                                         dS.imag()]])
+        # Note: scipy.sparse.bmat constructs by row
+        #       cvxopt does so by column
+        self.gy_store = bmat([[dR.imag, dS.real],
+                              [dR.real, dS.imag]])
 
         return self.gy_store
 
@@ -351,31 +355,31 @@ class Line(ModelBase):
         I2 = mul(self.v2, self.y12 + self.y2) - \
             mul(self.v2, div(self.y12, self.m))
 
-        self.I1_real = I1.real()
-        self.I1_imag = I1.imag()
-        self.I2_real = I2.real()
-        self.I2_imag = I2.imag()
+        self.I1_real = I1.real
+        self.I1_imag = I1.imag
+        self.I2_real = I2.real
+        self.I2_imag = I2.imag
 
         self.S1 = mul(self.v1, conj(I1))
         self.S2 = mul(self.v2, conj(I2))
 
-        self.P1 = self.S1.real()
-        self.P2 = self.S2.real()
-        self.Q1 = self.S1.imag()
-        self.Q2 = self.S2.imag()
+        self.P1 = self.S1.real
+        self.P2 = self.S2.real
+        self.Q1 = self.S1.imag
+        self.Q2 = self.S2.imag
 
         self.chg1 = mul(self.g1 + 1j * self.b1, div(self.v1**2, self.m2))
         self.chg2 = mul(self.g2 + 1j * self.b2, self.v2**2)
 
-        self.Pchg1 = self.chg1.real()
-        self.Pchg2 = self.chg2.real()
+        self.Pchg1 = self.chg1.real
+        self.Pchg2 = self.chg2.real
 
-        self.Qchg1 = self.chg1.imag()
-        self.Qchg2 = self.chg2.imag()
+        self.Qchg1 = self.chg1.imag
+        self.Qchg2 = self.chg2.imag
 
-        self._line_flows = matrix([self.P1, self.P2, self.Q1, self.Q2,
-                                   self.I1_real, self.I1_imag,
-                                   self.I2_real, self.I2_imag])
+        self._line_flows = concatenate([self.P1, self.P2, self.Q1, self.Q2,
+                                        self.I1_real, self.I1_imag,
+                                        self.I2_real, self.I2_imag])
 
     @property
     def v1(self):

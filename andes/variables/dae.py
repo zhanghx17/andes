@@ -361,6 +361,7 @@ class DAE(object):
         if yext > 0:
             yzeros = zeros(yext, 1)
             yones = ones(yext, 1)
+            # TODO: FIX matrix concatenation
             self.y = matrix([self.y, yzeros], (self.m, 1), 'd')
             self.g = matrix([self.g, yzeros], (self.m, 1), 'd')
             self.uy = matrix([self.uy, yones], (self.m, 1), 'd')
@@ -590,9 +591,9 @@ class DAE(object):
         if isinstance(val, (int, float)):
             val = val * ones(len(row), 1)
 
-        self._temp[m]['I'] = matrix([self._temp[m]['I'], matrix(row)])
-        self._temp[m]['J'] = matrix([self._temp[m]['J'], matrix(col)])
-        self._temp[m]['V'] = matrix([self._temp[m]['V'], matrix(val)])
+        self._temp[m]['I'] = np.concatenate([self._temp[m]['I'], matrix(row)])
+        self._temp[m]['J'] = np.concatenate([self._temp[m]['J'], matrix(col)])
+        self._temp[m]['V'] = np.concatenate([self._temp[m]['V'], matrix(val)])
 
     def temp_to_spmatrix(self, ty):
         """
@@ -636,12 +637,12 @@ class DAE(object):
 
         if isinstance(val,
                       (int, float)) and isinstance(row,
-                                                   (np.ndarray, matrix, list)):
+                                                   (np.ndarray, list)):
             val = val * ones(len(row), 1)
 
-        self._set[m]['I'] = matrix([self._set[m]['I'], matrix(row)])
-        self._set[m]['J'] = matrix([self._set[m]['J'], matrix(col)])
-        self._set[m]['V'] = matrix([self._set[m]['V'], matrix(val)])
+        self._set[m]['I'] = np.concatenate([self._set[m]['I'], matrix(row)])
+        self._set[m]['J'] = np.concatenate([self._set[m]['J'], matrix(col)])
+        self._set[m]['V'] = np.concatenate([self._set[m]['V'], matrix(val)])
 
     def apply_set(self, ty):
         """

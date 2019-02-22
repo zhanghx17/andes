@@ -61,17 +61,17 @@ def aneb(a, b):
 
 def aorb(a, b):
     """Return a matrix of logic comparison of A or B"""
-    return np.logical_or(a, b).astype('float'), a.size
+    return np.logical_or(a, b).astype('float')
 
 
 def aandb(a, b):
     """Return a matrix of logic comparison of A or B"""
-    return np.logical_and(a, b).astype('float'), a.size
+    return np.logical_and(a, b).astype('float')
 
 
 def nota(a):
     """Return a matrix of logic negative of A"""
-    return np.logical_not(a).astype('float'), a.size
+    return np.logical_not(a).astype('float')
 
 
 def polar(m, a):
@@ -109,17 +109,20 @@ def not0(a):
     return np.array(list(map(lambda x: 1 if x == 0 else x, a)))
 
 
-def zeros(m, n):
+def zeros(m, n, col=False):
     """Return a m-by-n zero-value matrix"""
-    if n == 1:
+    if n == 1 and col is False:
         return np.zeros((m, ))
     else:
         return np.zeros((m, n))
 
 
-def ones(m, n):
+def ones(m, n, col=False):
     """Return a m-by-n one-value matrix"""
-    return np.ones((m, n))
+    if n == 1 and col is False:
+        return np.ones((m, ))
+    else:
+        return np.ones((m, n))
 
 
 def sign(a):

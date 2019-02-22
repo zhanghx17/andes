@@ -4,6 +4,7 @@ from ..utils.altmath import matrix, spmatrix
 
 from .dcbase import DCBase
 from ..utils.math import zeros, conj, polar
+from ..utils.math import aorb
 
 from ..consts import Fx0, Fy0, Gx0, Gy0  # NOQA
 from ..consts import Fx, Fy, Gx, Gy  # NOQA
@@ -217,7 +218,7 @@ class VSC(DCBase):
         below = list(dae.y[self.v1] - self.vlow)
         above = matrix([1 if i > 0 else 0 for i in above])
         below = matrix([1 if i < 0 else 0 for i in below])
-        self.R = mul(above or below, self.K)
+        self.R = mul(aorb(above, below), self.K)
         self.vdcref = mul(self.droop, above, self.vhigh) + mul(
             self.droop, below, self.vlow)
         dae.g += spmatrix(
@@ -228,8 +229,8 @@ class VSC(DCBase):
                 dae.y[self.v1] - dae.y[self.v2]), self.v2, [0] * self.n,
             (dae.m, 1), 'd')  # negative current injection
 
-        dae.g[self.ash] = mul(self.u, Ssh.real() - dae.y[self.psh])  # (2)
-        dae.g[self.vsh] = mul(self.u, Ssh.imag() - dae.y[self.qsh])  # (3)
+        dae.g[self.ash] = mul(self.u, Ssh.real - dae.y[self.psh])  # (2)
+        dae.g[self.vsh] = mul(self.u, Ssh.imag - dae.y[self.qsh])  # (3)
 
         # PQ, PV or V control
         dae.g[self.psh] = mul(
@@ -276,7 +277,7 @@ class VSC(DCBase):
 
         dae.g[self.pdc] = mul(
             self.u,
-            mul(Vsh, IshC).real() - dae.y[self.pdc] + (self.k0 + mul(
+            mul(Vsh, IshC).real - dae.y[self.pdc] + (self.k0 + mul(
                 self.k1, dae.y[self.Ish]) + mul(self.k2, dae.y[self.Ish]**2)))
 
     def switch(self, idx, control):
@@ -325,8 +326,8 @@ class VSC(DCBase):
         Ish = div(Vsh - Vh + 1e-6, Zsh)
         iIsh = div(self.u, Ish)
 
-        gsh = div(self.u, Zsh).real()
-        bsh = div(self.u, Zsh).imag()
+        gsh = div(self.u, Zsh).real
+        bsh = div(self.u, Zsh).imag
         V = dae.y[self.v]
         theta = dae.y[self.a]
         Vsh = dae.y[self.vsh]

@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..utils.altmath import matrix
+from ..utils.altmath import matrix, concatenate
 import logging
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class VarOut(object):
 
         self.t.append(t)
         self.k.append(step)
-        self.vars.append(matrix([self.system.dae.x, self.system.dae.y]))
+        self.vars.append(concatenate([self.system.dae.x, self.system.dae.y]))
 
         # remove the post-computed variables from the variable list
         if self.system.tds.config.compute_flows:

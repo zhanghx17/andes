@@ -1,5 +1,6 @@
 from scipy.sparse.linalg import spsolve
-from scipy.sparse import csc_matrix
+from scipy.sparse import csc_matrix, csr_matrix, issparse  # NOQA
+
 
 try:
     import cupy as cp
@@ -8,6 +9,7 @@ try:
 except ImportError:
     CP = False
 
+import cvxopt
 from cvxopt import umfpack
 from ..utils.altmath import matrix
 
@@ -44,11 +46,16 @@ class Solver(object):
 
         """
 
-        if self.sparselib == 'umfpack':
-            return umfpack.symbolic(A)
+        if self.sparselib in ('umfpack', 'klu'):
+            if issparse(A):
+                A_cv = A.tocoo()
+                A = cvxopt.spmatrix(A_cv.data, A_cv.row, A_cv.col, size=A_cv.shape)
 
-        elif self.sparselib == 'klu':
-            return klu.symbolic(A)
+            if self.sparselib == 'umfpack':
+                return umfpack.symbolic(A)
+
+            elif self.sparselib == 'klu':
+                return klu.symbolic(A)
 
         elif self.sparselib in ('spsolve', 'cupy'):
             raise NotImplementedError
@@ -69,11 +76,16 @@ class Solver(object):
         N
             Numeric factorization of ``A``
         """
-        if self.sparselib == 'umfpack':
-            return umfpack.numeric(A, F)
+        if self.sparselib in ('umfpack', 'klu'):
+            if issparse(A):
+                A_cv = A.tocoo()
+                A = cvxopt.spmatrix(A_cv.data, A_cv.row, A_cv.col, size=A_cv.shape)
 
-        elif self.sparselib == 'klu':
-            return klu.numeric(A, F)
+            if self.sparselib == 'umfpack':
+                return umfpack.numeric(A, F)
+
+            elif self.sparselib == 'klu':
+                return klu.numeric(A, F)
 
         elif self.sparselib in ('spsolve', 'cupy'):
             raise NotImplementedError
@@ -98,13 +110,21 @@ class Solver(object):
         -------
         None
         """
-        if self.sparselib == 'umfpack':
-            umfpack.solve(A, N, b)
-            return b
+        if self.sparselib in ('umfpack', 'klu'):
+            if issparse(A):
+                A_cv = A.tocoo()
+                A = cvxopt.spmatrix(A_cv.data, A_cv.row, A_cv.col, size=A_cv.shape)
 
-        elif self.sparselib == 'klu':
-            klu.solve(A, F, N, b)
-            return b
+            if isinstance(b, np.ndarray):
+                b = cvxopt.matrix(b)
+
+            if self.sparselib == 'umfpack':
+                umfpack.solve(A, N, b)
+                return b
+
+            elif self.sparselib == 'klu':
+                klu.solve(A, F, N, b)
+                return b
 
         elif self.sparselib in ('spsolve', 'cupy'):
             raise NotImplementedError
@@ -125,13 +145,21 @@ class Solver(object):
         -------
         None
         """
-        if self.sparselib == 'umfpack':
-            umfpack.linsolve(A, b)
-            return b
+        if self.sparselib in ('umfpack', 'klu'):
+            if issparse(A):
+                A_cv = A.tocoo()
+                A = cvxopt.spmatrix(A_cv.data, A_cv.row, A_cv.col, size=A_cv.shape)
 
-        elif self.sparselib == 'klu':
-            klu.linsolve(A, b)
-            return b
+            if isinstance(b, np.ndarray):
+                b = cvxopt.matrix(b)
+
+            if self.sparselib == 'umfpack':
+                umfpack.linsolve(A, b)
+                return b
+
+            elif self.sparselib == 'klu':
+                klu.linsolve(A, b)
+                return b
 
         elif self.sparselib in ('spsolve', 'cupy'):
             ccs = A.CCS

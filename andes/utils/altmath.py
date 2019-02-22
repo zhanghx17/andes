@@ -77,7 +77,7 @@ def spdiag(x, shape=None, format=None, dtype=None):
     """Construct a sparse diagonal csr_matrix using the cvxopt.spdiag interface
     """
     if x.ndim == 2 and x.shape[1] == 1:
-        x = x.flat
+        x = x.reshape((1, ))
 
     return diags(x, offsets=0, shape=shape, format=format, dtype=dtype)
 

@@ -1,5 +1,6 @@
 import logging
-from ..utils.altmath import matrix, sparse, div
+from ..utils.altmath import matrix, sparse, bmat, div, concatenate  # NOQA
+
 from .base import RoutineBase
 from andes.config.pflow import Pflow
 from andes.utils import elapsed
@@ -205,10 +206,10 @@ class PFLOW(RoutineBase):
         system = self.system
         self.newton_call()
 
-        A = sparse([[system.dae.Fx, system.dae.Gx],
-                    [system.dae.Fy, system.dae.Gy]])
+        A = bmat([[system.dae.Fx, system.dae.Fy],
+                  [system.dae.Gx, system.dae.Gy]])
 
-        inc = matrix([system.dae.f, system.dae.g])
+        inc = concatenate([system.dae.f, system.dae.g])
 
         if system.dae.factorize:
             try:

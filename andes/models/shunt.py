@@ -73,12 +73,12 @@ class Shunt(ModelBase):
             q = np.array(q_inj).reshape((-1))
 
             p = coo_matrix(
-                (p, (self.a, np.zeros(self.n))), shape=(dae.m, 1)).toarray()
+                (p, (self.a, np.zeros(self.n))), shape=(dae.m, 1)).toarray().ravel()
             q = coo_matrix(
-                (q, (self.v, np.zeros(self.n))), shape=(dae.m, 1)).toarray()
+                (q, (self.v, np.zeros(self.n))), shape=(dae.m, 1)).toarray().ravel()
 
-            dae.g += matrix(p)
-            dae.g += matrix(q)
+            dae.g += p
+            dae.g += q
 
     def gycall(self, dae):
         dV2 = mul(self.u, 2 * dae.y[self.v])

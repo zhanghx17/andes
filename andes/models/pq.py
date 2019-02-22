@@ -106,8 +106,8 @@ class PQ(ModelBase):
                 (np.array(self.q0).reshape((-1)), (self.v, np.zeros(self.n))),
                 shape=(dae.m, 1))
 
-            dae.g += matrix(p0.toarray())
-            dae.g += matrix(q0.toarray())
+            dae.g += p0.toarray().ravel()
+            dae.g += q0.toarray().ravel()
 
     def gycall(self, dae):
         k = zeros(self.n, 1)

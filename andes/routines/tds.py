@@ -10,7 +10,7 @@ from andes.utils.solver import Solver
 
 from .base import RoutineBase
 
-from ..utils.altmath import matrix, sparse, spdiag
+from ..utils.altmath import matrix, sparse, spdiag, concatenate
 from time import monotonic as time, sleep
 
 logger = logging.getLogger(__name__)
@@ -424,7 +424,7 @@ class TDS(RoutineBase):
                 except NotImplementedError:
                     pass
 
-            self.inc = -matrix([dae.q, dae.g])
+            self.inc = -concatenate([dae.q, dae.g])
 
             try:
                 N = self.solver.numeric(dae.Ac, self.F)

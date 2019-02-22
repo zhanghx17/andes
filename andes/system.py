@@ -599,13 +599,13 @@ class PowerSystem(object):
 
         Sloss = self.Line.S1 + self.Line.S2
 
-        Pfr = list(self.Line.S1.real())
-        Qfr = list(self.Line.S1.imag())
-        Pto = list(self.Line.S2.real())
-        Qto = list(self.Line.S2.imag())
+        Pfr = list(self.Line.S1.real)
+        Qfr = list(self.Line.S1.imag)
+        Pto = list(self.Line.S2.real)
+        Qto = list(self.Line.S2.imag)
 
-        Ploss = list(Sloss.real())
-        Qloss = list(Sloss.imag())
+        Ploss = list(Sloss.real)
+        Qloss = list(Sloss.imag)
 
         if sort_names:
             ret = (list(x) for x in zip(*sorted(

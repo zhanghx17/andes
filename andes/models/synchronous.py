@@ -135,16 +135,16 @@ class SynBase(ModelBase):
         dae.y[self.q] = q0
 
         delta = log(div(E, abs(E) + 0j))
-        dae.x[self.delta] = mul(self.u, delta.imag())
+        dae.x[self.delta] = mul(self.u, delta.imag)
         dae.x[self.omega] = matrix(self.u, (self.n, 1), 'd')
 
         # d- and q-axis voltages and currents
         vdq = mul(self.u, mul(v, exp(jpi2 - delta)))
         idq = mul(self.u, mul(I, exp(jpi2 - delta)))
-        vd = dae.y[self.vd] = vdq.real()
-        vq = dae.y[self.vq] = vdq.imag()
-        Id = dae.y[self.Id] = idq.real()
-        Iq = dae.y[self.Iq] = idq.imag()
+        vd = dae.y[self.vd] = vdq.real
+        vq = dae.y[self.vq] = vdq.imag
+        Id = dae.y[self.Id] = idq.real
+        Iq = dae.y[self.Iq] = idq.imag
 
         # electro-mechanical torques / powers
         self.pm0 = mul(vq + mul(self.ra, Iq), Iq) + mul(

@@ -114,8 +114,9 @@ class Zone(ModelBase):
         half_incidence = spmatrix(x, a, b, (self.n, self.n), 'd')
         self.incidence = half_incidence + half_incidence.T
 
-        incidence = self.incidence - spdiag(self.incidence[0::self.n + 1])
-        I, J, V = incidence.I, incidence.J, incidence.V
+        incidence = self.incidence - spdiag(self.incidence.diagonal(), shape=self.incidence.shape)
+        incidence = incidence.tocoo()
+        I, J, V = incidence.row, incidence.col, incidence.data
 
         self.n_combination = 0
         for i, j, v in zip(I, J, V):

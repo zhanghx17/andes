@@ -151,8 +151,8 @@ class EIG(RoutineBase):
             logger.warning('Install matplotlib to plot eigenvalue map.')
             return
 
-        mu_real = self.mu.real()
-        mu_imag = self.mu.imag()
+        mu_real = self.mu.real
+        mu_imag = self.mu.imag
         p_mu_real, p_mu_imag = list(), list()
         z_mu_real, z_mu_imag = list(), list()
         n_mu_real, n_mu_imag = list(), list()
@@ -204,8 +204,8 @@ class EIG(RoutineBase):
         data = []
 
         neig = len(mu)
-        mu_real = mu.real()
-        mu_imag = mu.imag()
+        mu_real = mu.real
+        mu_imag = mu.imag
         npositive = sum(1 for x in mu_real if x > 0)
         nzero = sum(1 for x in mu_real if x == 0)
         nnegative = sum(1 for x in mu_real if x < 0)

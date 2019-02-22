@@ -1,4 +1,4 @@
-from ..utils.altmath import matrix, spmatrix  # NOQA
+from ..utils.altmath import matrix, spmatrix, concatenate  # NOQA
 from ..utils.altmath import mul, div, exp  # NOQA
 from ..consts import *  # NOQA
 from ..utils.math import neg
@@ -97,7 +97,7 @@ class Breaker(ModelBase):
             return
 
         for i in range(self.n):
-            tn = matrix([self.t1[i], self.t2[i], self.t3[i], self.t4[i]])
+            tn = concatenate([self.t1[i], self.t2[i], self.t3[i], self.t4[i]])
             tn = mul(self.u[i], tn)
             if actual_time in tn:
 
