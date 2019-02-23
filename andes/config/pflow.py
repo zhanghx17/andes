@@ -23,6 +23,7 @@ class Pflow(ConfigBase):
         self.units = 'pu'
         self.units_alt = ['pu', 'nominal']
         self.usedegree = True
+        self.iterlog = False
         super(Pflow, self).__init__(**kwargs)
 
     @cached
@@ -38,6 +39,7 @@ class Pflow(ConfigBase):
             'switch2nr': 'switch to Newton Raphson method if non-convergence',
             'units': 'the unit for the power flow report',
             'usedegree': 'use degree in the power flow report',
+            'iterlog': 'save iteration numerical values to log file (super verbose)'
         }
         return descriptions
 

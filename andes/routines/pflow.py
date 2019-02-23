@@ -1,6 +1,9 @@
 import logging
 from ..utils.altmath import matrix, sparse, bmat, div, concatenate  # NOQA
 
+import numpy as np
+import pandas as pd
+
 from .base import RoutineBase
 from andes.config.pflow import Pflow
 from andes.utils import elapsed
@@ -250,16 +253,37 @@ class PFLOW(RoutineBase):
         system.dae.init_fg()
         system.dae.reset_small_g()
         # evaluate algebraic equation mismatches
+
+        g_log = {}
+        f_log = {}
         for model, pflow, gcall in zip(system.devman.devices,
                                        system.call.pflow, system.call.gcall):
             if pflow and gcall:
                 system.__dict__[model].gcall(dae)
+                if self.config.iterlog:
+                    g_log[model] = dae.g.copy()
+
+        if self.config.iterlog:
+            g_log_df = pd.DataFrame.from_dict(g_log,
+                                              columns=system.varname.unamey,
+                                              orient='index')
+            logger.debug('Iter #{}, gcall:'.format(self.niter))
+            logger.debug(g_log_df.to_string())
 
         # eval differential equations
         for model, pflow, fcall in zip(system.devman.devices,
                                        system.call.pflow, system.call.fcall):
             if pflow and fcall:
                 system.__dict__[model].fcall(dae)
+            if self.config.iterlog:
+                f_log[model] = dae.f.copy()
+
+        if self.config.iterlog:
+            f_log_df = pd.DataFrame.from_dict(f_log,
+                                              columns=system.varname.unamex,
+                                              orient='index')
+            logger.debug('Iter #{}, fcall:'.format(self.niter))
+            logger.debug(f_log_df.to_string())
 
         # reset islanded buses mismatches
         system.Bus.gisland(dae)
