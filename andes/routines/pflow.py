@@ -4,6 +4,8 @@ from ..utils.altmath import matrix, sparse, bmat, div, concatenate  # NOQA
 import numpy as np  # NOQA
 import pandas as pd
 
+import scipy.io as sio
+
 from .base import RoutineBase
 from andes.config.pflow import Pflow
 from andes.utils import elapsed
@@ -11,6 +13,7 @@ from andes.utils.solver import Solver
 
 from collections import OrderedDict
 
+np.set_printoptions(threshold=np.nan)
 logger = logging.getLogger(__name__)
 __cli__ = 'pflow'
 
@@ -119,6 +122,8 @@ class PFLOW(RoutineBase):
 
         while True:
             inc = self.calc_inc()
+            logger.debug('Iter #{} increment:'.format(self.niter))
+            logger.debug(inc)
             dae.x += inc[:dae.n]
             dae.y += inc[dae.n:dae.n + dae.m]
 
@@ -256,6 +261,7 @@ class PFLOW(RoutineBase):
         system.dae.reset_small_g()
         # evaluate algebraic equation mismatches
 
+        log_mat_g = OrderedDict()
         g_log = OrderedDict()
         f_log = OrderedDict()
         for model, pflow, gcall in zip(system.devman.devices,
@@ -317,6 +323,14 @@ class PFLOW(RoutineBase):
         system.Bus.gyisland(dae)
 
         dae.temp_to_spmatrix('jac')
+
+        logger.debug('Iter #{}:'.format(self.niter))
+        logger.debug(dae.Gy.todense())
+
+        log_mat_g['g_{}_bad'.format(self.niter)] = dae.g.copy()
+        log_mat_g['gy_{}_bad'.format(self.niter)] = dae.Gy.copy()
+
+        sio.savemat('/tmp/log/andes-log-bad-{}.mat'.format(self.niter), log_mat_g)
 
     def post(self):
         """
