@@ -1,13 +1,15 @@
 import logging
 from ..utils.altmath import matrix, sparse, bmat, div, concatenate  # NOQA
 
-import numpy as np
+import numpy as np  # NOQA
 import pandas as pd
 
 from .base import RoutineBase
 from andes.config.pflow import Pflow
 from andes.utils import elapsed
 from andes.utils.solver import Solver
+
+from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 __cli__ = 'pflow'
@@ -254,8 +256,8 @@ class PFLOW(RoutineBase):
         system.dae.reset_small_g()
         # evaluate algebraic equation mismatches
 
-        g_log = {}
-        f_log = {}
+        g_log = OrderedDict()
+        f_log = OrderedDict()
         for model, pflow, gcall in zip(system.devman.devices,
                                        system.call.pflow, system.call.gcall):
             if pflow and gcall:
