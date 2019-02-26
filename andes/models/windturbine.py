@@ -1,4 +1,6 @@
-from ..utils.altmath import matrix, spmatrix, sparse
+import numpy as np
+
+from ..utils.altmath import matrix, spmatrix, sparse, bmat
 from ..utils.altmath import mul, div, sin, cos, exp
 
 from ..consts import Fx0, Fy0, Gx0, Gy0  # NOQA
@@ -10,6 +12,7 @@ try:
     from cvxoptklu.klu import linsolve
 except ImportError:
     from cvxopt.umfpack import linsolve
+from scipy.sparse.linalg import spsolve
 
 from ..utils.math import zeros, ones, agtb, ageb, altb, aleb, aandb, aneb
 from ..utils.math import mfloor, mround, mmax, mmin, not0
@@ -432,10 +435,10 @@ class WTG4DC(ModelBase, Turbine, MPPT):
             # vsq = self.psip[i]
             # isd = Pg / 2
             # isq = Pg / 2
-            x = matrix([vsd[i], vsq[i], isd[i], isq[i]])
+            x = np.concatenate([vsd[i], vsq[i], isd[i], isq[i]])
 
             mis = ones(4, 1)
-            jac = sparse(matrix(0, (4, 4), 'd'))
+            jac = sparse(zeros(4, 4))
             iter = 0
             while (max(abs(mis))) > self.system.tds.config.tol:
                 if iter > 40:
@@ -466,7 +469,7 @@ class WTG4DC(ModelBase, Turbine, MPPT):
                 jac[3, 2] = omega[i] * xd[i]
                 jac[3, 3] = rs[i]
 
-                linsolve(jac, mis)
+                spsolve(jac, mis)
                 x -= mis
                 iter += 1
 
@@ -833,8 +836,9 @@ class WTG3(ModelBase):
 
         # obtain ird isd isq
         for i in range(self.n):
-            A = sparse([[-rs[i], vsq[i]], [x1[i], -vsd[i]]])
-            B = matrix([vsd[i] - xmu[i] * irq[i], Qg[i]])
+            A = bmat([[-rs[i], x1[i]],
+                      [vsq[i], -vsd[i]]])
+            B = np.array([vsd[i] - xmu[i] * irq[i], Qg[i]])
             linsolve(A, B)
             isd[i] = B[0]
             isq[i] = B[1]
@@ -850,7 +854,7 @@ class WTG3(ModelBase):
             rows = [0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5]
             cols = [0, 1, 3, 0, 1, 2, 2, 4, 3, 5, 0, 1, 2]
 
-            x = matrix([isd[i], isq[i], ird[i], irq[i], vrd[i], vrq[i]])
+            x = np.array([isd[i], isq[i], ird[i], irq[i], vrd[i], vrq[i]])
             # vals = [-rs, x1, xmu, -x1, -rs, -xmu, -rr,
             #         -1, -rr, -1, vsd, vsq, -xmu * Vc / x1]
 

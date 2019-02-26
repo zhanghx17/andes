@@ -189,8 +189,10 @@ class Zone(ModelBase):
     def interchange_varout(self):
         if not self.n:
             return
-        incidence = self.incidence - spdiag(self.incidence[0::self.n + 1])
-        I, J, V = incidence.I, incidence.J, incidence.V
+        incidence = self.incidence - spdiag(self.incidence.diagonal())
+        incidence = incidence.tocoo()
+        I, J, V = incidence.row, incidence.col, incidence.data
+
         P, Q = [], []
         for i, j, v in zip(I, J, V):
             if v == 0.:

@@ -2,6 +2,7 @@ import logging
 import importlib
 import sys
 import numpy as np
+import scipy as sp
 
 from andes.config.tds import Tds
 from andes.utils import elapsed
@@ -10,7 +11,7 @@ from andes.utils.solver import Solver
 
 from .base import RoutineBase
 
-from ..utils.altmath import matrix, sparse, spdiag, concatenate
+from ..utils.altmath import matrix, concatenate, bmat
 from time import monotonic as time, sleep
 
 logger = logging.getLogger(__name__)
@@ -382,8 +383,8 @@ class TDS(RoutineBase):
         system = self.system
         dae = self.system.dae
 
-        # constant short names
-        In = spdiag([1] * dae.n)
+        # constant eye matrix
+        In = sp.sparse.eye(dae.n)
         h = self.h
 
         while self.err > config.tol and self.niter < config.maxit:
@@ -404,14 +405,13 @@ class TDS(RoutineBase):
 
             # complete Jacobian matrix dae.Ac
             if config.method == 'euler':
-                dae.Ac = sparse(
-                    [[In - h * dae.Fx, dae.Gx], [-h * dae.Fy, dae.Gy]],
-                    'd')
+                dae.Ac = bmat([[In - h * dae.Fx, -h * dae.Fy],
+                               [dae.Gx, dae.Gy]])
                 dae.q = dae.x - self.x0 - h * dae.f
 
             elif config.method == 'trapezoidal':
-                dae.Ac = sparse([[In - h * 0.5 * dae.Fx, dae.Gx],
-                                 [-h * 0.5 * dae.Fy, dae.Gy]], 'd')
+                dae.Ac = bmat([[In - h * 0.5 * dae.Fx, -h * 0.5 * dae.Fy],
+                               [dae.Gx, dae.Gy]])
                 dae.q = dae.x - self.x0 - h * 0.5 * (dae.f + self.f0)
 
             # windup limiters
@@ -428,7 +428,7 @@ class TDS(RoutineBase):
 
             try:
                 N = self.solver.numeric(dae.Ac, self.F)
-                self.solver.solve(dae.Ac, self.F, N, self.inc)
+                self.inc = self.solver.solve(dae.Ac, self.F, N, self.inc)
             except ArithmeticError:
                 logger.error('Singular matrix')
                 dae.check_diag(dae.Gy, 'unamey')
@@ -586,7 +586,7 @@ class TDS(RoutineBase):
             exec(system.call.seriesflow)
             system.Area.seriesflow(system.dae)
             system.Area.interchange_varout()
-            dae.y = matrix([
+            dae.y = np.concatenate([
                 dae.y, bus_inj, system.Line._line_flows, system.Area.inter_varout
             ])
 

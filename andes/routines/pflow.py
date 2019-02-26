@@ -122,8 +122,6 @@ class PFLOW(RoutineBase):
 
         while True:
             inc = self.calc_inc()
-            logger.debug('Iter #{} increment:'.format(self.niter))
-            logger.debug(inc)
             dae.x += inc[:dae.n]
             dae.y += inc[dae.n:dae.n + dae.m]
 
@@ -230,17 +228,17 @@ class PFLOW(RoutineBase):
 
         try:
             N = self.solver.numeric(A, self.F)
-            self.solver.solve(A, self.F, N, inc)
+            sol = self.solver.solve(A, self.F, N, inc)
         except ValueError:
             logger.warning('Unexpected symbolic factorization.')
-            system.dae.factorize = True
+            sol = system.dae.factorize = True
         except ArithmeticError:
             logger.warning('Jacobian matrix is singular.')
             system.dae.check_diag(system.dae.Gy, 'unamey')
         except NotImplementedError:
-            inc = self.solver.linsolve(A, inc)
+            sol = self.solver.linsolve(A, inc)
 
-        return -inc
+        return -sol
 
     def newton_call(self):
         """
@@ -323,9 +321,6 @@ class PFLOW(RoutineBase):
         system.Bus.gyisland(dae)
 
         dae.temp_to_spmatrix('jac')
-
-        logger.debug('Iter #{}:'.format(self.niter))
-        logger.debug(dae.Gy.todense())
 
         log_mat_g['g_{}_bad'.format(self.niter)] = dae.g.copy()
         log_mat_g['gy_{}_bad'.format(self.niter)] = dae.Gy.copy()

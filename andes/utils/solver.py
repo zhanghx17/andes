@@ -120,11 +120,11 @@ class Solver(object):
 
             if self.sparselib == 'umfpack':
                 umfpack.solve(A, N, b)
-                return b
+                return np.array(b).reshape((-1, ))
 
             elif self.sparselib == 'klu':
                 klu.solve(A, F, N, b)
-                return b
+                return np.array(b).reshape((-1, ))
 
         elif self.sparselib in ('spsolve', 'cupy'):
             raise NotImplementedError
@@ -155,11 +155,11 @@ class Solver(object):
 
             if self.sparselib == 'umfpack':
                 umfpack.linsolve(A, b)
-                return b
+                return np.array(b).reshape((-1, ))
 
             elif self.sparselib == 'klu':
                 klu.linsolve(A, b)
-                return b
+                return np.array(b).reshape((-1, ))
 
         elif self.sparselib in ('spsolve', 'cupy'):
             ccs = A.CCS

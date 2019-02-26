@@ -1,20 +1,23 @@
 """Create a wrapper for numpy array and scipy sparse to
 provide CVXOPT matrix interfaces"""
-
+import logging
 import numpy as np
 
 from numpy import ndarray
 from numpy import sin, cos, tan, power, multiply, divide, concatenate  # NOQA
 
 import scipy as sp
-from scipy.sparse import csr_matrix, diags, bmat, lil_matrix  # NOQA
 from scipy import linalg  # NOQA
+from scipy.sparse import csr_matrix, lil_matrix, diags, bmat  # NOQA
+from scipy.sparse import eye  # NOQA
 
 import cvxopt
 
 from functools import reduce
 
 import builtins
+
+logger = logging.getLogger(__name__)
 
 
 def round(number, dec=0):
@@ -64,6 +67,12 @@ def matrix(x, size=None, tc='d', dtype=None, copy=True, order='K', subok=False, 
     # convert csr_matrix to dense array
     if isinstance(x, csr_matrix):
         return x.toarray()
+
+    if isinstance(x, list):
+        if len(x) > 0:
+            if isinstance(x[0], np.ndarray):
+                logger.warning('Deprecated concatenation using matrix(). Use np.concatenate().')
+                return np.concatenate(x)
 
     ret = np.array(x, dtype=dtype, copy=copy, order=order, subok=subok, ndmin=ndmin)
 

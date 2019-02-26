@@ -1,8 +1,9 @@
-from ..utils.altmath import matrix, spmatrix, sparse, spdiag
+from ..utils.altmath import matrix, spmatrix, eye
 from ..utils.math import zeros, ones
 from ..utils.math import ageb, aleb, aandb, agtb  # NOQA
 from ..utils.math import index, altb  # NOQA
 import numpy as np
+import scipy as sp
 import logging
 
 logger = logging.getLogger(__name__)
@@ -216,7 +217,7 @@ class DAE(object):
         self.g = zeros(self.m, 1)
 
     def setup_Gy(self):
-        self.Gy = sparse(self.Gy0)
+        self.Gy = self.Gy0.copy()
         self._temp.update({
             'Gy': {
                 'I': matrix([]),
@@ -234,9 +235,6 @@ class DAE(object):
         })
 
     def setup_Fx(self):
-        # self.Fx = sparse(self.Fx0)
-        # self.Fy = sparse(self.Fy0)
-        # self.Gx = sparse(self.Gx0)
 
         self._temp.update({
             'Fx': {
@@ -362,19 +360,19 @@ class DAE(object):
             yzeros = zeros(yext, 1)
             yones = ones(yext, 1)
             # TODO: FIX matrix concatenation
-            self.y = matrix([self.y, yzeros], (self.m, 1), 'd')
-            self.g = matrix([self.g, yzeros], (self.m, 1), 'd')
-            self.uy = matrix([self.uy, yones], (self.m, 1), 'd')
-            self.zymin = matrix([self.zymin, yones], (self.m, 1), 'd')
-            self.zymax = matrix([self.zymax, yones], (self.m, 1), 'd')
+            self.y = np.concatenate([self.y, yzeros])
+            self.g = np.concatenate([self.g, yzeros])
+            self.uy = np.concatenate([self.uy, yones])
+            self.zymin = np.concatenate([self.zymin, yones])
+            self.zymax = np.concatenate([self.zymax, yones])
         if xext > 0:
             xzeros = zeros(xext, 1)
             xones = ones(xext, 1)
-            self.x = matrix([self.x, xzeros], (self.n, 1), 'd')
-            self.f = matrix([self.f, xzeros], (self.n, 1), 'd')
-            self.ux = matrix([self.ux, xones], (self.n, 1), 'd')
-            self.zxmin = matrix([self.zxmin, xones], (self.n, 1), 'd')
-            self.zxmax = matrix([self.zxmax, xones], (self.n, 1), 'd')
+            self.x = np.concatenate([self.x, xzeros])
+            self.f = np.concatenate([self.f, xzeros])
+            self.ux = np.concatenate([self.ux, xones])
+            self.zxmin = np.concatenate([self.zxmin, xones])
+            self.zxmax = np.concatenate([self.zxmax, xones])
 
     def hard_limit(self, yidx, ymin, ymax, min_set=None, max_set=None):
         """Set hard limits for algebraic variables and reset the equation mismatches
@@ -547,17 +545,22 @@ class DAE(object):
         y = [i + self.n for i in index(aandb(self.zymin, self.zymax), 0.)]
         xy = list(x) + y
 
-        eye = spdiag([1.0] * mn)
-        H = spmatrix(1.0, xy, xy, (mn, mn), 'd')
+        Imn = eye(mn).todok()
 
-        # Modifying ``eye`` is more efficient than ``eye = eye - H``.
-        # CVXOPT modifies eye in place because all the accessed elements exist.
+        H = sp.sparse.dok_matrix((mn, mn))
+        for pos in xy:
+            H[pos, pos] = 1
+
+        # H = spmatrix(1.0, xy, xy, (mn, mn), 'd')
+
+        # Modifying ``Imn`` is more efficient than ``Imn = Imn - H``.
+        # CVXOPT modifies Imn in place because all the accessed elements exist.
 
         for idx in xy:
-            eye[idx, idx] = 0
+            Imn[idx, idx] = 0
 
         if len(xy) > 0:
-            self.Ac = eye * (self.Ac * eye) - H
+            self.Ac = Imn * (self.Ac * Imn) - H
             self.q[x] = 0
 
         self.ac_reset = False
@@ -719,12 +722,16 @@ class DAE(object):
         pos = []
         names = []
         pairs = ''
-        size = jac.size
-        diag = jac[0:size[0] ** 2:size[0] + 1]
+        # size = jac.size
+        # diag = jac[0:size[0] ** 2:size[0] + 1]
+        diag = jac.diagonal()
 
-        for idx in range(size[0]):
-            if abs(diag[idx]) <= 1e-8:
+        for idx, item in enumerate(diag):
+            if abs(item) <= 1e-8:
                 pos.append(idx)
+        # for idx in range(size[0]):
+        #     if abs(diag[idx]) <= 1e-8:
+        #         pos.append(idx)
 
         for idx in pos:
             names.append(system.varname.__dict__[name][idx])
