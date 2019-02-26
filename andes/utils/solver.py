@@ -165,13 +165,14 @@ class Solver(object):
                 return np.array(b).reshape((-1, ))
 
         elif self.sparselib in ('spsolve', 'cupy'):
-            ccs = A.CCS
-            size = A.size
-            data = np.array(ccs[2]).reshape((-1,))
-            indices = np.array(ccs[1]).reshape((-1,))
-            indptr = np.array(ccs[0]).reshape((-1,))
+            if isinstance(A, cvxopt.spmatrix):
+                ccs = A.CCS
+                size = A.size
+                data = np.array(ccs[2]).reshape((-1,))
+                indices = np.array(ccs[1]).reshape((-1,))
+                indptr = np.array(ccs[0]).reshape((-1,))
 
-            A = csc_matrix((data, indices, indptr), shape=size)
+                A = csc_matrix((data, indices, indptr), shape=size)
 
             if self.sparselib == 'spsolve':
                 x = spsolve(A, b)
