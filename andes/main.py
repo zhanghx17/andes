@@ -84,8 +84,11 @@ def config_logger(name='andes',
     # file handler for level DEBUG and up
     if log_file is not None:
         log_full_path = os.path.join(log_path, log_file)
+        # fh_formatter = logging.Formatter(
+        #     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh_formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            '[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
+
         fh = logging.FileHandler(log_full_path)
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(fh_formatter)

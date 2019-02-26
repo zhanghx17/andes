@@ -4,6 +4,7 @@ from ..utils.math import zeros
 from ..consts import Fx0, Fy0, Gx0, Gy0  # NOQA
 from ..consts import Fx, Fy, Gx, Gy  # NOQA
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +43,11 @@ class Fault(ModelBase):
         self._ac = {'bus': ['a', 'v']}
         self._z.extend(['rf', 'xf'])
         self._mandatory.extend(['bus', 'tf'])
-        self._service = ['gf', 'bf', 'time', 'volt0', 'angle0']
+        self._service = ['gf', 'bf', 'volt0', 'angle0']
         self.calls.update({'gcall': True, 'gycall': True})
         self._init()
         self.active = 0
+        self.time = 0
 
     def setup(self):
         super().setup()
@@ -78,8 +80,8 @@ class Fault(ModelBase):
                         self.bus[i], self.tf[i]))
                 self.u[i] = 1
                 self.active += 1
-                self.angle0 = self.system.dae.y[self.system.Bus.a]
-                self.volt0 = self.system.dae.y[self.system.Bus.n:]
+                self.angle0 = np.copy(self.system.dae.y[self.system.Bus.a])
+                self.volt0 = np.copy(self.system.dae.y[self.system.Bus.n:])
                 self.system.dae.factorize = True
 
             elif self.tc[i] == self.time:

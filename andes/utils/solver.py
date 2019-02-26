@@ -1,5 +1,5 @@
 from scipy.sparse.linalg import spsolve
-from scipy.sparse import csc_matrix, csr_matrix, issparse  # NOQA
+from scipy.sparse import csc_matrix, csr_matrix, coo_matrix, issparse  # NOQA
 
 
 try:
@@ -77,15 +77,17 @@ class Solver(object):
             Numeric factorization of ``A``
         """
         if self.sparselib in ('umfpack', 'klu'):
-            if issparse(A):
-                A_cv = A.tocoo()
-                A = cvxopt.spmatrix(A_cv.data, A_cv.row, A_cv.col, size=A_cv.shape)
+            Ac = A
 
+            if issparse(A):
+                if not isinstance(A, coo_matrix):
+                    A = A.tocoo()
+                Ac = cvxopt.spmatrix(A.data, A.row, A.col, size=A.shape)
             if self.sparselib == 'umfpack':
-                return umfpack.numeric(A, F)
+                return umfpack.numeric(Ac, F)
 
             elif self.sparselib == 'klu':
-                return klu.numeric(A, F)
+                return klu.numeric(Ac, F)
 
         elif self.sparselib in ('spsolve', 'cupy'):
             raise NotImplementedError
@@ -112,8 +114,9 @@ class Solver(object):
         """
         if self.sparselib in ('umfpack', 'klu'):
             if issparse(A):
-                A_cv = A.tocoo()
-                A = cvxopt.spmatrix(A_cv.data, A_cv.row, A_cv.col, size=A_cv.shape)
+                if not isinstance(A, coo_matrix):
+                    A = A.tocoo()
+                A = cvxopt.spmatrix(A.data, A.row, A.col, size=A.shape)
 
             if isinstance(b, np.ndarray):
                 b = cvxopt.matrix(b)

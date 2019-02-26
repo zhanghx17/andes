@@ -288,7 +288,7 @@ class TDS(RoutineBase):
             # show iteration info every 30 seconds or every 20%
 
             t2, _ = elapsed(t1)
-            if t2 - t1 >= 30:
+            if t2 - t1 >= 0:
                 t1 = t2
                 logger.info(' ({:.0f}%) time = {:.4f}s, step = {}, niter = {}'
                             .format(100 * self.t / config.tf, self.t, self.step,

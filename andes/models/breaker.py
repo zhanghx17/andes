@@ -53,7 +53,8 @@ class Breaker(ModelBase):
             'u4': 'boolean',
         })
         self._mandatory.extend(['bus', 'line'])
-        self._service.extend(['times', 'time'])
+        self._service.extend(['times'])
+        self.time = 0
         self.param_remove('Sn')
         self._init()
 
