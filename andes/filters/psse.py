@@ -9,15 +9,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def testlines(fid):
+def testlines(file):
     """Check the raw file for frequency base"""
-    first = fid.readline()
-    first = first.strip().split('/')
-    first = first[0].split(',')
-    if float(first[5]) == 50.0 or float(first[5]) == 60.0:
-        return True
-    else:
-        return False
+    with open(file, 'r') as fid:
+        first = fid.readline()
+        first = first.strip().split('/')
+        first = first[0].split(',')
+        if float(first[5]) == 50.0 or float(first[5]) == 60.0:
+            return True
+        else:
+            return False
 
 
 def get_nol(b, mdata):

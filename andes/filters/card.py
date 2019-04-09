@@ -12,13 +12,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def testlines(fid):
+def testlines(file):
     try:
-        first = fid.readline()
-        if 'card' in first:
-            return True
-        else:
-            return False
+        with open(file, 'r') as fid:
+            first = fid.readline()
+            if 'card' in first:
+                return True
+            else:
+                return False
     except IOError:
         print('* IOError while reading input card file.')
 

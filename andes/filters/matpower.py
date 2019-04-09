@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def testlines(fid):
+def testlines(file):
     return True  # hard coded
 
 
