@@ -2,6 +2,7 @@
 Filter for IEEE CDF format
 """
 
+from ..consts import rad2deg  # NOQA
 import datetime
 import logging
 logger = logging.getLogger(__name__)
@@ -40,7 +41,21 @@ def write(file, system):
                '{10:<8} {11:7} {12:6} {13:8} {14:8} ' \
                '{15:8} {16:8} {17:4}'
 
-    for bus in system.Bus.idx:  # NOQA
+    for idx, bus in enumerate(system.Bus.idx):  # NOQA
+
+        # mva = system.mva
+        # name = system.Bus.get_field('name', bus)
+        # area = system.Bus.get_field('area', bus)
+        # zone = system.Bus.get_field('zone', bus)
+        # bus_type = -1
+        # voltage = system.dae.y[system.Bus.v[idx]]
+        # angle = system.dae.y[system.Bus.a[idx]] * rad2deg
+        # loadp = 0
+        # loadq = 0
+        # genp = 0
+        # genq = 0
+        # basekV = 0
+
         bus_line
         pass
 
