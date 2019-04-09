@@ -34,7 +34,7 @@ def write(file, system):
                                                              year,
                                                              'S',
                                                              'NONE')
-    out += title
+    out += title + '\n'
 
     bus_line = '{0:<6} {1:<10} {2:<2} {3:<3} {4:<2} ' \
                '{5:<6} {6:<7} {7:<9} {8:<10} {9:<8} ' \
@@ -43,20 +43,51 @@ def write(file, system):
 
     for idx, bus in enumerate(system.Bus.idx):  # NOQA
 
-        # mva = system.mva
-        # name = system.Bus.get_field('name', bus)
-        # area = system.Bus.get_field('area', bus)
-        # zone = system.Bus.get_field('zone', bus)
-        # bus_type = -1
-        # voltage = system.dae.y[system.Bus.v[idx]]
-        # angle = system.dae.y[system.Bus.a[idx]] * rad2deg
-        # loadp = 0
-        # loadq = 0
-        # genp = 0
-        # genq = 0
-        # basekV = 0
+        mva = system.mva
+        name = system.Bus.get_field('name', bus)
+        area = system.Bus.get_field('area', bus)
+        zone = system.Bus.get_field('zone', bus)
+        basekV = system.Bus.get_field('Vn', bus)
+        bus_type = -1
+        voltage = system.dae.y[system.Bus.v[idx]]
+        angle = system.dae.y[system.Bus.a[idx]] * rad2deg
 
-        bus_line
+        # initial values to be overwritten
+        loadp = 0
+        loadq = 0
+        genp = 0
+        genq = 0
+        shuntg = 0
+        shuntb = 0
+        desired_volts = 1
+
+        pq_idx = system.PQ.on_bus(idx)
+        if pq_idx:
+            loadp = system.PQ.get_field('p', pq_idx) * mva
+            loadq = system.PQ.get_field('q', pq_idx) * mva
+            bus_type = 0
+        pv_idx = system.PV.on_bus(idx)
+        if pv_idx:
+            genp = system.PV.get_field('pg', pv_idx) * mva
+            desired_volts = system.PV.get_field('v0', pv_idx)
+            bus_type = 2
+        sw_idx = system.SW.on_bus(idx)
+        if sw_idx:
+            desired_volts = system.SW.get_field('v0', sw_idx)
+            bus_type = 3
+
+        vmax = 1.1
+        vmin = 0.9
+        shunt_idx = system.Shunt.on_bus(idx)
+        if shunt_idx:
+            shuntb = system.Shunt.get_field('b', idx)
+            shuntg = system.Shunt.get_field('g', idx)
+        remote = 0
+
+        out += bus_line.format(bus, name, area, zone, bus_type,
+                               voltage, angle, loadp, loadq,
+                               genp, genq, basekV, desired_volts,
+                               vmax, vmin, shuntb, shuntg, remote)
         pass
 
     with open(file, 'w') as f:  # NOQA
