@@ -81,6 +81,8 @@ class FileMan(object):
             self.prof = None
         else:
             self.no_output = False
+            # makedir for self.output_path if not exist
+            os.makedirs(os.path.abspath(self.output_path), exist_ok=True)
             if not output:
                 output = add_suffix(self.name, 'out')
             if not dump_raw:

@@ -81,7 +81,7 @@ class Line(ModelBase):
             'ycoord': 'y coordinates',
             'trasf': 'transformer branch flag',
             'tap': 'transformer branch tap ratio',
-            'phi': 'transformer branch phase shift in rad',
+            'phi': 'transformer branch phase shift',
             'fn': 'rated frequency',
             'owner': 'owner code',
             'rate_a': 'phase a power flow limit',

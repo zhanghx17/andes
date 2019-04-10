@@ -154,6 +154,7 @@ def cli_new():
     io_group.add_argument('-D', '--dynfile', help='Additional dynamic file in dm format.')
     io_group.add_argument('-P', '--pert', help='Perturbation file path', default='')
     io_group.add_argument('-d', '--dump-raw', help='Dump RAW format case file.')
+    io_group.add_argument('-O', '--output-format', help='Dump RAW output format', default='dome')
     io_group.add_argument('-n', '--no-output', help='Force no output of any '
                                                     'kind',
                           action='store_true')
@@ -727,7 +728,7 @@ def main():
     return
 
 
-def run(case, routine=None, profile=False, dump_raw=False, pid=-1, show_data=None, exit=False,
+def run(case, routine=None, profile=False, pid=-1, show_data=None, exit=False,
         **kwargs):
     """
     Entry function to run a single case study. This function executes the
@@ -782,7 +783,7 @@ def run(case, routine=None, profile=False, dump_raw=False, pid=-1, show_data=Non
         return
 
     # dump system as raw file if requested
-    if dump_raw:
+    if kwargs.get('dump_raw', None):
         filters.dump_raw(system)
 
     system.setup()
