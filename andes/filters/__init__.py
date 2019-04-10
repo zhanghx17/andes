@@ -26,7 +26,9 @@ input_formats = {
 #   extensions
 # The static data will be written by write() function and the addfile by
 #   writeadd()
-output_formats = ['dm', 'cdf']
+output_formats = {'cdf': 'cdf',
+                  'dome': 'dm'
+                  }
 
 
 def guess(system):
@@ -152,14 +154,20 @@ def parse(system):
 def dump_raw(system):
     t, _ = elapsed()
 
-    outfile = system.files.dump_raw
-    dmparser = importlib.import_module('.' + 'dome', __name__)
+    out_format = 'dome'
+    if system.files.output_format:
+        if system.files.output_format in output_formats:
+            out_format = system.files.output_format
 
-    ret = dmparser.write(outfile, system)
+    output_ext = output_formats[out_format]
+    outfile = system.files.dump_raw + '.' + output_ext
+
+    parser = importlib.import_module('.' + out_format, __name__)
+    ret = parser.write(outfile, system)
 
     _, s = elapsed(t)
     if ret:
         logger.info('Raw file dump {:s} written in {:s}.'.format(
-            system.files.dump_raw, s))
+            outfile, s))
     else:
         logger.error('Dump raw file failed.')

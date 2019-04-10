@@ -93,7 +93,7 @@ class FileMan(object):
             self.output = os.path.join(self.output_path, output + '.txt')
 
             self.eig = os.path.join(self.output_path, eig + '.txt')
-            self.dump_raw = os.path.join(self.output_path, dump_raw + '.dm')
+            self.dump_raw = os.path.join(self.output_path, dump_raw)
             self.prof = os.path.join(self.output_path, prof + '.txt')
 
     def get_fullpath(self, fullname=None, relative_to=None):
