@@ -44,6 +44,7 @@ def write(file, system):
     out.extend(get_interchange_data(system))
     out.extend(get_tielines_data(system))
     out.extend(get_node_data(system))
+    out.extend(get_dcline_data(system))
 
     out.append('END OF DATA\n')
 
@@ -69,10 +70,10 @@ def get_line_data(system):
     line_header = '{0:<44s} {1:<6g} ITEMS'.format('BRANCH DATA FOLLOWS', system.Line.n) + '\n'
     out.append(line_header)
 
-    line_tpl = '{0:<4g} {1:4g} {2:2g} {3:<2g} {4} {5} ' \
-               '{6:<10g} {7:10g} {8:10g} {9:5g} {10:5g} ' \
-               '{11:5g} {12:4g} {13} {14:6g} {15:6g} ' \
-               '{16:6g} {17:6g} {18:6g} {19:6g} {20:6g}'
+    line_tpl = '{0:<6g} {1:<6g} {2:<2g} {3:<2g} {4:<1} {5:<1} ' \
+               '{6:<10g} {7:<10g} {8:<10g} {9:<5g} {10:<5g} ' \
+               '{11:<5g} {12:<4g} {13:<1} {14:<6.4g} {15:<6.4g} ' \
+               '{16:<6.4g} {17:<6g} {18:<6g} {19:<6g} {20:<6g}'
 
     for idx, line in enumerate(system.Line.idx):
         bus1 = system.Line.get_field('bus1', line)
@@ -163,24 +164,27 @@ def get_bus_data(system):
     bus_header = '{0:<44s} {1:<6g} ITEMS'.format('BUS DATA FOLLOWS', system.Bus.n) + '\n'
     out.append(bus_header)
 
-    bus_line = '{0:<6g} {1:<10} {2:<2} {3:<3} {4:<2} ' \
-               '{5:<6} {6:<7} {7:<9g} {8:<10g} {9:<8g} ' \
-               '{10:<8g} {11:7g} {12:6g} {13:8g} {14:8g} ' \
-               '{15:8g} {16:8g} {17:4}'
+    bus_line = '{0:<6g} {1:<10s} {2:<3g} {3:<3g} {4:<2g} ' \
+               '{5:<6.6s} {6:<7.7s} {7:<9g} {8:<10g} {9:<8g} ' \
+               '{10:<8g} {11:<7g} {12:<6.5g} {13:<8g} {14:<8g} ' \
+               '{15:<8g} {16:<8g} {17:<4}'
 
     for idx, bus in enumerate(system.Bus.idx):  # NOQA
 
         mva = system.mva
-        name = system.Bus.get_field('name', bus)
+        name = system.Bus.get_field('name', bus)[:6]  # truncated
         area = system.Bus.get_field('area', bus)
         zone = system.Bus.get_field('zone', bus)
         basekV = system.Bus.get_field('Vn', bus)
-        bus_type = -1
+        bus_type = 0
         # voltage = system.dae.y[system.Bus.v[idx]]
         # angle = system.dae.y[system.Bus.a[idx]] * rad2deg
 
         voltage = system.Bus.get_field('voltage', bus)
         angle = system.Bus.get_field('angle', bus) * rad2deg
+
+        voltage = str(voltage)
+        angle = str(angle)
 
         # initial values to be overwritten
         loadp = 0
@@ -239,8 +243,9 @@ def get_node_data(system):
 
     out = []
 
-    node_tpl = '{0:<6g} {1:<12} {2:<2} {3:<2} {4:<2} ' \
-               '{5:<2} {6:<8g} {7:<8g} {8:<8g}'
+    out.append('{0:44s} {1:4g} ITEMS\n'.format('BRANCH DATA FOLLOWS', system.Node.n))
+    node_tpl = '{0:<6g} {1:<12.12} {2:<2} {3:<2} {4:<2} ' \
+               '{5:<8g} {6:<8g} {7:<8g}'
 
     for item in system.Node.idx:
         node_idx = item
@@ -270,11 +275,41 @@ def get_dcline_data(system):
     -------
 
     """
+    out = []
+    out_lines = []
+
     comp_list = ['R', 'L', 'RLs', 'RCp', 'RLCp']
 
+    dcline_tpl = '{0:<6g} {1:<6g} {2:<2g} {3:1g} {4:1g} {5:1g} {6:7g} {7:7g} {8:7g} {9:2g}'
+
+    n_dcline = 0
     for comp_name in comp_list:
         comp = system.__dict__[comp_name]
         for item in comp.idx:
-            # node1 = comp.get_field('node1', item)
-            # node2 = comp.get_field('node2', item)
-            pass
+            n_dcline += 1
+            node1 = comp.get_field('node1', item)
+            node2 = comp.get_field('node2', item)
+            R = comp.get_field('R', item)
+            C = 0
+            L = 0
+            try:
+                C = comp.get_field('C', item)
+            except:  # NOQA
+                logger.debug('Does not contain capacitance field C. Pass')
+                pass
+            try:
+                L = comp.get_field('L', item)
+                logger.debug('Does not contain reactance field L. Pass')
+            except:  # NOQA
+                pass
+
+            dcline_formatted = dcline_tpl.format(node1, node2, 1, 1, 1, 0, R, L, C, 0)
+
+            out_lines += dcline_formatted + '\n'
+
+    dcline_header = '{0:44s} {0:4s} ITEMS\n'.format('BRANCH DATA FOLLOWS', n_dcline)
+
+    out.append(dcline_header)
+    out.extend(out_lines)
+
+    return out
