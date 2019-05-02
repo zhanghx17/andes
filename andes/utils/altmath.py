@@ -99,7 +99,7 @@ def sparse(x, tc='d',):
 
 def mul(*args):
     """Wrapper for csr_matrix.multiply"""
-    if isinstance(args[0], np.ndarray):
+    if isinstance(args[0], (np.ndarray, float, int)):
         return +reduce(np.multiply, args)
     elif isinstance(args[0], cvxopt.spmatrix):
         return +reduce(cvxopt.mul, args)

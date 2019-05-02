@@ -397,10 +397,11 @@ class DAE(object):
         ny = len(yidx)
 
         if isinstance(ymin, (int, float, list)):
-            ymin = matrix(ymin, (ny, 1), 'd')
+            # ymin = matrix(ymin, (ny, 1), 'd')
+            ymin = ymin * ones(ny, 1)
         if isinstance(ymax, (int, float, list)):
-            ymax = matrix(ymax, (ny, 1), 'd')
-
+            # ymax = matrix(ymax, (ny, 1), 'd')
+            ymax = ymax * ones(ny, 1)
         if not min_set:
             min_set = ymin
         elif isinstance(min_set, (int, float, list)):
@@ -459,24 +460,25 @@ class DAE(object):
         above_idx, below_idx = list(), list()
         yidx = matrix(yidx)
 
-        if rmax:
+        if any(rmax) != 0:
             # find the over-limit remote idx
             above = ageb(self.__dict__[rtype][ridx], rmax)
             above_idx = index(above, 1.0)
             # reset the y values based on the remote limit violations
-            self.y[yidx[above_idx]] = max_yset[above_idx]
-            self.zymax[yidx[above_idx]] = 0
+            if len(above_idx) > 0:
+                self.y[yidx[above_idx]] = max_yset[above_idx]
+                self.zymax[yidx[above_idx]] = 0
 
-        if rmin:
+        if any(rmin) != 0:
             below = aleb(self.__dict__[rtype][ridx], rmin)
             below_idx = index(below, 1.0)
-            self.y[yidx[below_idx]] = min_yset[below_idx]
-            self.zymin[yidx[below_idx]] = 0
+            if len(below_idx) > 0:
+                self.y[yidx[below_idx]] = min_yset[below_idx]
+                self.zymin[yidx[below_idx]] = 0
 
         idx = above_idx + below_idx
-        self.g[yidx[idx]] = 0
-
         if len(idx) > 0:
+            self.g[yidx[idx]] = 0
             self.factorize = True
 
     def anti_windup(self, xidx, xmin, xmax):
@@ -498,11 +500,15 @@ class DAE(object):
         xval = self.x[xidx]
         fval = self.f[xidx]
 
-        if isinstance(xmin, (float, int, list)):
-            xmin = matrix(xmin, xidx.size, 'd')
-
-        if isinstance(xmax, (float, int, list)):
-            xmax = matrix(xmax, xidx.size, 'd')
+        if isinstance(xmin, (float, int)):
+            # xmin = matrix(xmin, xidx.size, 'd')
+            xmin = xmin * ones(xidx.size, 1)
+        elif isinstance(xmin, list):
+            xmin = np.array(xmin)
+        if isinstance(xmax, (float, int)):
+            # xmax = matrix(xmax, xidx.size, 'd')
+            xmax = xmax * ones(xidx.size, 1)
+            xmax = np.array(xmax)
 
         x_above = ageb(xval, xmax)
         f_above = ageb(fval, 0.0)

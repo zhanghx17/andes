@@ -9,9 +9,9 @@ from ..consts import pi
 from .base import ModelBase
 
 try:
-    from cvxoptklu.klu import linsolve
+    from cvxoptklu.klu import linsolve  # NOQA
 except ImportError:
-    from cvxopt.umfpack import linsolve
+    from cvxopt.umfpack import linsolve  # NOQA
 from scipy.sparse.linalg import spsolve
 
 from ..utils.math import zeros, ones, agtb, ageb, altb, aleb, aandb, aneb
@@ -469,7 +469,7 @@ class WTG4DC(ModelBase, Turbine, MPPT):
                 jac[3, 2] = omega[i] * xd[i]
                 jac[3, 3] = rs[i]
 
-                spsolve(jac, mis)
+                mis = spsolve(jac, mis)
                 x -= mis
                 iter += 1
 
@@ -831,15 +831,17 @@ class WTG3(ModelBase):
 
         irq = mul(-x1, toSb, (2 * omega - 1), div(1, Vc), div(1, xmu),
                   div(1, omega))
-        isd = zeros(*irq.size)
-        isq = zeros(*irq.size)
+        # isd = zeros(*irq.size)  # cxvopt deprecated
+        # isq = zeros(*irq.size)  # cxvopt deprecated
+        isd = zeros(irq.size, 1)
+        isq = zeros(irq.size, 1)
 
         # obtain ird isd isq
         for i in range(self.n):
             A = bmat([[-rs[i], x1[i]],
                       [vsq[i], -vsd[i]]])
             B = np.array([vsd[i] - xmu[i] * irq[i], Qg[i]])
-            linsolve(A, B)
+            B = spsolve(A, B)
             isd[i] = B[0]
             isq[i] = B[1]
         ird = -div(vsq + mul(rs, isq) + mul(x1, isd), xmu)
@@ -893,7 +895,7 @@ class WTG3(ModelBase):
 
                 jac = jac0 + spmatrix(vals, rows, cols, (6, 6), 'd')
 
-                linsolve(jac, mis)
+                mis = spsolve(jac, mis)
 
                 x -= mis
                 iter += 1
@@ -919,7 +921,8 @@ class WTG3(ModelBase):
         self.vref0 = mul(
             aneb(self.KV, 0), Vc - div(ird + div(Vc, xmu), self.KV))
         dae.y[self.vref] = self.vref0
-        k = mul(div(x1, Vc, xmu, omega), toSb)
+        # k = mul(div(x1, Vc, xmu, omega), toSb)
+        k = mul(div(div(div(x1, Vc), xmu), omega), toSb)
 
         self.irq_off = -mul(k, mmax(mmin(2 * omega - 1, 1), 0)) - irq
 
@@ -1002,7 +1005,7 @@ class WTG3(ModelBase):
         a5 = 1.000 / (lamb + 0.08 * theta) ** 2 - \
             1.3125 * theta * theta / (theta ** 3 + 1) ** 2
 
-        jac = ones(1, 3)
+        jac = ones(3, 1)
         jac[0] = ngen * R * a1 * rho * vw * vw * Ar * (
             -12.760 + 1.3750 * a3) / a2 / mva_mega
         jac[1] = ngen * (omega * R * (12.760 - 1.3750 * a3) / a2 +

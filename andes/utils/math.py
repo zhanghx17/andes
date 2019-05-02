@@ -139,6 +139,8 @@ def sort(m, reverse=False):
     elif isinstance(m, list):
         m = sorted(m, reverse=reverse)
         return m
+    elif isinstance(m, np.ndarray):
+        raise NotImplementedError
 
 
 def sort_idx(m, reverse=False):
@@ -191,7 +193,8 @@ def sdiv(a, b):
         raise ValueError('Argument a and b does not have the same length')
     idx = 0
     ret = zeros(len(a), 1)
-    ret = cvxopt.matrix(ret)
+    # ret = cvxopt.matrix(ret)  # deprecated
+    ret = ret.copy()
     for m, n in zip(a, b):
         try:
             ret[idx] = m / n

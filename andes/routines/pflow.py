@@ -4,7 +4,7 @@ from ..utils.altmath import matrix, sparse, bmat, div, concatenate  # NOQA
 import numpy as np  # NOQA
 import pandas as pd
 
-import scipy.io as sio
+import scipy.io as sio  # NOQA
 
 from .base import RoutineBase
 from andes.config.pflow import Pflow
@@ -325,7 +325,7 @@ class PFLOW(RoutineBase):
         log_mat_g['g_{}_bad'.format(self.niter)] = dae.g.copy()
         log_mat_g['gy_{}_bad'.format(self.niter)] = dae.Gy.copy()
 
-        sio.savemat('/tmp/log/andes-log-bad-{}.mat'.format(self.niter), log_mat_g)
+        # sio.savemat('/tmp/log/andes-log-bad-{}.mat'.format(self.niter), log_mat_g)
 
     def post(self):
         """

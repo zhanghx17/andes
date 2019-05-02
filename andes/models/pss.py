@@ -1,4 +1,4 @@
-from ..utils.altmath import matrix, spmatrix
+from ..utils.altmath import matrix, spmatrix  # NOQA
 from ..utils.altmath import mul, div
 
 from .base import ModelBase
@@ -138,9 +138,9 @@ class PSS1(ModelBase):
 
     def set_flag(self, value, flag, reset_val=False):
         """Set a flag to 0 if the corresponding value is 0"""
-        if not self.__dict__[flag]:
-            self.__dict__[flag] = matrix(1.0, (len(self.__dict__[value]), 1),
-                                         'd')
+        # if not self.__dict__[flag]:
+        #     self.__dict__[flag] = matrix(1.0, (len(self.__dict__[value]), 1),
+
         for idx, item in enumerate(self.__dict__[value]):
             if item == 0:
                 self.__dict__[flag][idx] = 0
