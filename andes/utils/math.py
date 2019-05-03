@@ -41,12 +41,14 @@ def agtb(a, b):
 
 def aleb(a, b):
     """Return a matrix of logic comparison of A<=B"""
-    return np.less_equal(a, b).astype('float')
+    return np.logical_or(np.isclose(a, b).astype('float'),
+                         np.less_equal(a, b).astype('float'))
 
 
 def ageb(a, b):
     """Return a matrix of logic comparision of A>=B"""
-    return np.greater_equal(a, b).astype('float')
+    return np.logical_or(np.isclose(a, b).astype('float'),
+                         np.greater_equal(a, b).astype('float'))
 
 
 def aeqb(a, b):

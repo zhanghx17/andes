@@ -266,6 +266,7 @@ class TDS(RoutineBase):
             self.niter = 0
             self.convergence = False
 
+            logger.debug("Entering implicit_step()")
             self.implicit_step()
 
             if self.convergence is False:
@@ -279,6 +280,8 @@ class TDS(RoutineBase):
 
             self.step += 1
             self.compute_flows()
+            logger.debug("Entering varout_store()")
+
             system.varout.store(self.t, self.step)
             self.streaming_step()
 
@@ -290,9 +293,9 @@ class TDS(RoutineBase):
             t2, _ = elapsed(t1)
             if t2 - t1 >= 0:
                 t1 = t2
-                logger.info(' ({:.0f}%) time = {:.4f}s, step = {}, niter = {}'
-                            .format(100 * self.t / config.tf, self.t, self.step,
-                                    self.niter))
+                logger.debug(' ({:.0f}%) time = {:.4f}s, step = {}, niter = {}'
+                             .format(100 * self.t / config.tf, self.t, self.step,
+                                     self.niter))
 
             if perc > self.next_pc or self.t == config.tf:
                 self.next_pc += 20
@@ -386,21 +389,29 @@ class TDS(RoutineBase):
         # constant eye matrix
         In = sp.sparse.eye(dae.n)
         h = self.h
+        logger.debug("--> Entering implicit step. Current t={}".format(self.t))
 
         while self.err > config.tol and self.niter < config.maxit:
+            logger.debug("-> Iter={}".format(self.niter))
+
             if self.t - self.t_jac >= 5:
                 dae.rebuild = True
                 self.t_jac = self.t
+                logger.debug("Triggering dae.rebuild because t_diff > 5s")
             elif self.niter > 4:
                 dae.rebuild = True
+                logger.debug("Triggering dae.rebuild because niter > 4")
             elif dae.factorize:
                 dae.rebuild = True
+                logger.debug("Triggering dae.rebuild because of dae.refactorize")
 
             # rebuild Jacobian
             if dae.rebuild:
+                logger.debug("Entering dae rebuild")
                 exec(system.call.int)
                 dae.rebuild = False
             else:
+                logger.debug("Not entering dae rebuild. Only updating f and g mismatch")
                 exec(system.call.int_fg)
 
             # complete Jacobian matrix dae.Ac
@@ -415,34 +426,45 @@ class TDS(RoutineBase):
                 dae.q = dae.x - self.x0 - h * 0.5 * (dae.f + self.f0)
 
             # windup limiters
+            logger.debug("Entering Ac matrix reset")
             dae.reset_Ac()
 
-            if dae.factorize:
-                try:
-                    self.F = self.solver.symbolic(dae.Ac)
-                    dae.factorize = False
-                except NotImplementedError:
-                    pass
+            # if dae.factorize:
+            #     try:
+            #         logger.debug("Calling Symbolic factorization because dae.factorize=True")
+            #         self.F = self.solver.symbolic(dae.Ac)
+            #         dae.factorize = False
+            #     except NotImplementedError:
+            #         pass
+            # else:
+            #     logger.debug("NOT calling symbolic factorization")
 
             self.inc = -concatenate([dae.q, dae.g])
 
-            try:
-                N = self.solver.numeric(dae.Ac, self.F)
-                self.inc = self.solver.solve(dae.Ac, self.F, N, self.inc)
-            except ArithmeticError:
-                logger.error('Singular matrix')
-                dae.check_diag(dae.Gy, 'unamey')
-                dae.check_diag(dae.Fx, 'unamex')
-                # force quit
-                self.niter = config.maxit + 1
-                break
-            except ValueError:
-                logger.warning('Unexpected symbolic factorization')
-                dae.factorize = True
-                continue
-            except NotImplementedError:
-                self.inc = self.solver.linsolve(dae.Ac, self.inc)
+            # try:
+            #     logger.debug("Calling Numerical factorization")
+            #     N = self.solver.numeric(dae.Ac, self.F)
+            #     self.inc = self.solver.solve(dae.Ac, self.F, N, self.inc)
+            # except ArithmeticError:
+            #     logger.error('Singular matrix')
+            #     dae.check_diag(dae.Gy, 'unamey')
+            #     dae.check_diag(dae.Fx, 'unamex')
+            #     # force quit
+            #     self.niter = config.maxit + 1
+            #     break
+            # except ValueError:
+            #     logger.warning('Unexpected symbolic factorization')
+            #     dae.factorize = True
+            #     continue
+            # except NotImplementedError:
+            #     logger.debug("Calling linsolve without Sym or Numeric factorization")
+            #     self.inc = self.solver.linsolve(dae.Ac, self.inc)
 
+            self.F = self.solver.symbolic(dae.Ac)
+            N = self.solver.numeric(dae.Ac, self.F)
+            self.inc = self.solver.solve(dae.Ac, self.F, N, self.inc)
+
+            logger.debug("Updating dae.x and dae.y")
             inc_x = self.inc[:dae.n]
             inc_y = self.inc[dae.n:dae.m + dae.n]
             dae.x += inc_x

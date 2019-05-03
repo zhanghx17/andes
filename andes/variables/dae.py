@@ -501,13 +501,13 @@ class DAE(object):
         fval = self.f[xidx]
 
         if isinstance(xmin, (float, int)):
-            # xmin = matrix(xmin, xidx.size, 'd')
             xmin = xmin * ones(xidx.size, 1)
         elif isinstance(xmin, list):
             xmin = np.array(xmin)
+
         if isinstance(xmax, (float, int)):
-            # xmax = matrix(xmax, xidx.size, 'd')
             xmax = xmax * ones(xidx.size, 1)
+        elif isinstance(xmax, list):
             xmax = np.array(xmax)
 
         x_above = ageb(xval, xmax)
@@ -543,6 +543,7 @@ class DAE(object):
         :return: None
         """
         if self.ac_reset is False:
+            logger.debug("No limit hit. Ac reset not necessary")
             return
 
         mn = self.m + self.n
@@ -568,6 +569,9 @@ class DAE(object):
         if len(xy) > 0:
             self.Ac = Imn * (self.Ac * Imn) - H
             self.q[x] = 0
+            logger.debug("Ac reset element")
+        else:
+            logger.debug("Ac did NOT reset element")
 
         self.ac_reset = False
         self.factorize = True

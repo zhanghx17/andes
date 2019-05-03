@@ -136,7 +136,7 @@ PQ, Vn = 13.8, bus = 14, idx = "PQ load_11", name = "PQ Bus 14", p = 0.149,
 
 Fault, bus = 4, Vn = 69, tf = 2.0, tc = 2.05, rf = 0.0, xf = 0.00001
 
-#Breaker, Vn = 69.0, bus = 2, fn = 60.0, idx = 1, line = "Line_4",
+# Breaker, Vn = 69.0, bus = 2, fn = 60.0, idx = 1, line = "Line_4",
 #         name = "Breaker 1", t1 = 1.0, t2 = 200.0, u1 = 1, u2 = 1
 
 PV, Vn = 69.0, bus = 2, busr = 2, idx = 2, name = "PV Bus 2",
@@ -187,19 +187,19 @@ TG1, gen = 2, pmax = 2, pmin = 0, R = 0.01, wref0 = 1.0,
 AVR1, Ka = 200.0, Kf = 0.002, Ta = 0.02, Te = 0.2, Tf = 1.0, Tr = 0.001,
       idx = 1, name = "AVR 1", syn = 1, vrmax = 7.32,
       vrmin = 0
-AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 1.98, Tf = 1.0, Tr = 0.001,
-      idx = 2, name = "AVR 2", syn = 2, vrmax = 4.38,
-      vrmin = 0.0
-AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 1.98, Tf = 1.0, Tr = 0.001,
-      idx = 3, name = "AVR 3", syn = 3, vrmax = 4.38,
-      vrmin = 0.0
-AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 0.7, Tf = 1.0, Tr = 0.001,
-      idx = 4, name = "AVR 4", syn = 4, vrmax = 6.81,
-      vrmin = 1.395
-AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 0.7, Tf = 1.0, Tr = 0.001,
-      idx = 5, name = "AVR 5", syn = 5, vrmax = 6.81,
-      vrmin = 1.395
+# AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 1.98, Tf = 1.0, Tr = 0.001,
+#       idx = 2, name = "AVR 2", syn = 2, vrmax = 4.38,
+#       vrmin = 0.0
+# AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 1.98, Tf = 1.0, Tr = 0.001,
+#       idx = 3, name = "AVR 3", syn = 3, vrmax = 4.38,
+#       vrmin = 0.0
+# AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 0.7, Tf = 1.0, Tr = 0.001,
+#       idx = 4, name = "AVR 4", syn = 4, vrmax = 6.81,
+#       vrmin = 1.395
+# AVR1, Ka = 20.0, Kf = 0.001, Ta = 0.02, Te = 0.7, Tf = 1.0, Tr = 0.001,
+#       idx = 5, name = "AVR 5", syn = 5, vrmax = 6.81,
+#       vrmin = 1.395
 
-#PSS2, avr = 1, Ic = 1
+# PSS2, avr = 1, Ic = 1
 
 # Recorder, model = "Syn6a"
