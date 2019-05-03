@@ -3,7 +3,7 @@ from ..utils.math import zeros, ones
 from ..utils.math import ageb, aleb, aandb, agtb  # NOQA
 from ..utils.math import index, altb  # NOQA
 import numpy as np
-import scipy as sp
+import scipy.sparse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -479,7 +479,7 @@ class DAE(object):
         idx = above_idx + below_idx
         if len(idx) > 0:
             self.g[yidx[idx]] = 0
-            self.factorize = True
+            self.ac_reset = True
 
     def anti_windup(self, xidx, xmin, xmax):
         """
@@ -543,8 +543,9 @@ class DAE(object):
         :return: None
         """
         if self.ac_reset is False:
-            logger.debug("No limit hit. Ac reset not necessary")
-            return
+            return False
+
+        self.ac_reset = False
 
         mn = self.m + self.n
 
@@ -554,27 +555,46 @@ class DAE(object):
 
         Imn = eye(mn).todok()
 
-        H = sp.sparse.dok_matrix((mn, mn))
+        H = scipy.sparse.dok_matrix((mn, mn))
         for pos in xy:
             H[pos, pos] = 1
-
-        # H = spmatrix(1.0, xy, xy, (mn, mn), 'd')
-
-        # Modifying ``Imn`` is more efficient than ``Imn = Imn - H``.
-        # CVXOPT modifies Imn in place because all the accessed elements exist.
 
         for idx in xy:
             Imn[idx, idx] = 0
 
         if len(xy) > 0:
-            self.Ac = Imn * (self.Ac * Imn) - H
-            self.q[x] = 0
-            logger.debug("Ac reset element")
-        else:
-            logger.debug("Ac did NOT reset element")
+            # reset self.q
 
-        self.ac_reset = False
-        self.factorize = True
+            self.q[x] = 0
+
+            self.Ac = self.Ac.tocsc()
+
+            # 1 - direct assignment
+            for idx in xy:
+                self.Ac[idx, :] = 0
+                self.Ac[:, idx] = 0
+                self.Ac[idx, idx] = 1
+
+            # 2 - matrix implementation
+            # self.Ac = Imn * (self.Ac * Imn) - H  # If this is called, memory error will occur
+
+            logger.debug("Ac reset element")
+            self.factorize = True
+            return True
+        else:
+            return False
+
+        # if len(xy) == 0:
+        #     return False
+        # else:
+        #     self.q[x] = 0
+        #     self.Ac = self.Ac.tocsc()
+        #     for idx in xy:
+        #         self.Ac[idx, :] = 0
+        #         self.Ac[:, idx] = 0
+        #         self.Ac[idx, idx] = 1
+        #     self.factorize = True
+        #     return True
 
     def get_size(self, m):
         """
@@ -627,6 +647,7 @@ class DAE(object):
             todo = jacs
 
         for m in todo:
+            logger.debug('Jac {} updated'.format(m))
             self.__dict__[m] = spmatrix(self._temp[m]['V'],
                                         self._temp[m]['I'], self._temp[m]['J'],
                                         self.get_size(m), 'd')
@@ -677,6 +698,7 @@ class DAE(object):
                 j = self._set[m]['J'][idx]
                 v = self._set[m]['V'][idx]
                 self.__dict__[m][i, j] = v
+                logger.debug('Jac {} set'.format(m))
 
     def show(self, eq, value=None):
         """Show equation or variable array along with the names"""

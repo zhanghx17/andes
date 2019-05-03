@@ -1,8 +1,10 @@
+import gc  # NOQA
 import logging
 import importlib
 import sys
 import numpy as np
 import scipy as sp
+import cvxopt  # NOQA
 
 from andes.config.tds import Tds
 from andes.utils import elapsed
@@ -43,6 +45,7 @@ class TDS(RoutineBase):
         self.fixed_times = []
         self.convergence = True
         self.niter = 0
+        self.last_niter = 0
         self.err = 1
         self.x0 = None
         self.y0 = None
@@ -410,10 +413,12 @@ class TDS(RoutineBase):
                 logger.debug("Entering dae rebuild")
                 exec(system.call.int)
                 dae.rebuild = False
+                dae.factorize = True  # factorize anyway if rebuilt
             else:
                 logger.debug("Not entering dae rebuild. Only updating f and g mismatch")
                 exec(system.call.int_fg)
 
+            logger.debug("Generating Ac matrix")
             # complete Jacobian matrix dae.Ac
             if config.method == 'euler':
                 dae.Ac = bmat([[In - h * dae.Fx, -h * dae.Fy],
@@ -426,43 +431,38 @@ class TDS(RoutineBase):
                 dae.q = dae.x - self.x0 - h * 0.5 * (dae.f + self.f0)
 
             # windup limiters
-            logger.debug("Entering Ac matrix reset")
             dae.reset_Ac()
 
-            # if dae.factorize:
-            #     try:
-            #         logger.debug("Calling Symbolic factorization because dae.factorize=True")
-            #         self.F = self.solver.symbolic(dae.Ac)
-            #         dae.factorize = False
-            #     except NotImplementedError:
-            #         pass
-            # else:
-            #     logger.debug("NOT calling symbolic factorization")
+            if dae.factorize:
+                try:
+                    logger.debug("Calling Symbolic factorization because dae.factorize=True")
+                    self.F = self.solver.symbolic(dae.Ac)
+                    dae.factorize = False
+                except NotImplementedError:
+                    pass
+            else:
+                logger.debug("NOT calling symbolic factorization")
 
             self.inc = -concatenate([dae.q, dae.g])
 
-            # try:
-            #     logger.debug("Calling Numerical factorization")
-            #     N = self.solver.numeric(dae.Ac, self.F)
-            #     self.inc = self.solver.solve(dae.Ac, self.F, N, self.inc)
-            # except ArithmeticError:
-            #     logger.error('Singular matrix')
-            #     dae.check_diag(dae.Gy, 'unamey')
-            #     dae.check_diag(dae.Fx, 'unamex')
-            #     # force quit
-            #     self.niter = config.maxit + 1
-            #     break
-            # except ValueError:
-            #     logger.warning('Unexpected symbolic factorization')
-            #     dae.factorize = True
-            #     continue
-            # except NotImplementedError:
-            #     logger.debug("Calling linsolve without Sym or Numeric factorization")
-            #     self.inc = self.solver.linsolve(dae.Ac, self.inc)
-
-            self.F = self.solver.symbolic(dae.Ac)
-            N = self.solver.numeric(dae.Ac, self.F)
-            self.inc = self.solver.solve(dae.Ac, self.F, N, self.inc)
+            try:
+                logger.debug("Calling Numerical factorization")
+                N = self.solver.numeric(dae.Ac, self.F)
+                self.inc = self.solver.solve(dae.Ac, self.F, N, self.inc)
+            except ArithmeticError:
+                logger.error('Singular matrix')
+                dae.check_diag(dae.Gy, 'unamey')
+                dae.check_diag(dae.Fx, 'unamex')
+                # force quit
+                self.niter = config.maxit + 1
+                break
+            except ValueError:
+                logger.warning('Unexpected symbolic factorization')
+                dae.factorize = True
+                continue
+            except NotImplementedError:
+                logger.debug("Calling linsolve without Sym or Numeric factorization")
+                self.inc = self.solver.linsolve(dae.Ac, self.inc)
 
             logger.debug("Updating dae.x and dae.y")
             inc_x = self.inc[:dae.n]
@@ -478,6 +478,7 @@ class TDS(RoutineBase):
 
             self.niter += 1
 
+        self.last_niter = self.niter
         if self.niter <= config.maxit:
             self.convergence = True
 
